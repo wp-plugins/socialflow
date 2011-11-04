@@ -47,27 +47,7 @@ jQuery(function($){
 
 
 	$('.row-actions .sf_publish a').click(function(e){
-		// e.preventDefault();
-		var $the_a = $(this);
-		var the_title = prompt('Please enter the text of the post you want to send:', $the_a.parents('td').find('.row-title').html() );
-		if ( the_title != null && the_title != "" ) {
-			return true;
-			// $the_a.sibling('ajax-loading').css('visibility','visible');
-			// var sf_message = the_title;
-			// var data = {
-			// 	action: 'sf-send-msg',
-			// 	sf_message: sf_message
-			// };
-			// $.post(ajaxurl, data, function(response) {
-			// 	$the_a.sibling('ajax-loading').css('visibility','hidden');
-			// 	if ( '0'===response )
-			// 		$the_a.html('Sent to SocialFlow');
-			// 	else
-			// 		$the_a.html('There was an error');
-			// });
-		} else {
-			return false;
-		}
+		return confirm('Are you sure you want to send this post to SocialFlow?');
 	});
 
 

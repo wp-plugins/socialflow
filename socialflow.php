@@ -48,7 +48,6 @@ class SocialFlow_Plugin {
 		add_action( 'save_post',                       array( $this, 'save_post'                 ) );
 		add_action( 'wp_dashboard_setup',              array( $this, 'register_dashboard_widget' ) );
 		add_action( 'wp_ajax_sf-shorten-msg',          array( $this, 'shorten_message'           ) );
-		// add_action( 'wp_ajax_sf-send-from-row-action', array( $this, 'send_from_row_action'      ) );	// for ajaxing the list view call in future
 		add_action( 'admin_init',                      array( $this, 'admin_init'                ) );
 		add_action( 'admin_notices',                   array( $this, 'admin_notices'             ) );
 	}
@@ -433,11 +432,6 @@ class SocialFlow_Plugin {
 		if ( $this->send_message( $message ) )
 			update_post_meta( $post->ID, 'sf_timestamp', date_i18n( 'Y-m-d G:i:s', false, 'gmt' ) . ' UTC' );
 	}
-
-	// for ajaxing the list view call in future
-	// public function send_from_row_action() {
-	// 	return $this->send_message() ? '1' : '0';
-	// }
 
 	public function shorten_message( $message = '' ) {
 		if ( !$message = $_REQUEST['sf_message'] )
