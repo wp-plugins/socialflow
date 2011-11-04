@@ -40,16 +40,17 @@ class SocialFlow_Plugin {
 		// Translations
 		load_plugin_textdomain( 'socialflow', false, basename( dirname( __FILE__ ) ) . '/i18n' );
 
-		add_action( 'post_row_actions',       array( $this, 'row_actions'               ), 10, 2 );
-		add_action( 'page_row_actions',       array( $this, 'row_actions'               ), 10, 2 );
-		add_action( 'admin_enqueue_scripts',  array( $this, 'enqueue'                   ), 10, 2 );
-		add_action( 'transition_post_status', array( $this, 'transition_post_status'    ), 10, 3 );
-		add_action( 'add_meta_boxes',         array( $this, 'add_meta_box'              ) );
-		add_action( 'save_post',              array( $this, 'save_post'                 ) );
-		add_action( 'wp_dashboard_setup',     array( $this, 'register_dashboard_widget' ) );
-		add_action( 'wp_ajax_sf-shorten-msg', array( $this, 'shorten_message'           ) );
-		add_action( 'admin_init',             array( $this, 'admin_init'                ) );
-		add_action( 'admin_notices',          array( $this, 'admin_notices'             ) );
+		add_action( 'post_row_actions',                array( $this, 'row_actions'               ), 10, 2 );
+		add_action( 'page_row_actions',                array( $this, 'row_actions'               ), 10, 2 );
+		add_action( 'admin_enqueue_scripts',           array( $this, 'enqueue'                   ), 10, 2 );
+		add_action( 'transition_post_status',          array( $this, 'transition_post_status'    ), 10, 3 );
+		add_action( 'add_meta_boxes',                  array( $this, 'add_meta_box'              ) );
+		add_action( 'save_post',                       array( $this, 'save_post'                 ) );
+		add_action( 'wp_dashboard_setup',              array( $this, 'register_dashboard_widget' ) );
+		add_action( 'wp_ajax_sf-shorten-msg',          array( $this, 'shorten_message'           ) );
+		// add_action( 'wp_ajax_sf-send-from-row-action', array( $this, 'send_from_row_action'      ) );	// for ajaxing the list view call in future
+		add_action( 'admin_init',                      array( $this, 'admin_init'                ) );
+		add_action( 'admin_notices',                   array( $this, 'admin_notices'             ) );
 	}
 
 	public function admin_init() {
@@ -91,7 +92,7 @@ class SocialFlow_Plugin {
 	}
 
 	public function enqueue( $hook ) {
-		if ( ! in_array( $hook, array( 'index.php', 'post.php', 'post-new.php' ) ) )
+		if ( ! in_array( $hook, array( 'index.php', 'post.php', 'post-new.php', 'edit.php' ) ) )
 			return;
 
 		$color = 'fresh' == get_user_meta( get_current_user_id(), 'admin_color', true ) ? '#F1F1F1' : '#F5FAFD';
@@ -103,6 +104,7 @@ class SocialFlow_Plugin {
 	#socialflow th { width: 100px; }
 	#socialflow fieldset { line-height: 1.4em; padding: 10px 0px }
 	#socialflow fieldset span { padding-right: 15px }
+	#socialflow #shorten-explanation { text-align:left; }
 	#shorten-links, #count { float: right; margin-left: 25px }
 	#minor-publishing #compose { float: left; }
 	#sf-text { margin-bottom: 2px; height: 6em; width: 100%; }
@@ -131,10 +133,12 @@ class SocialFlow_Plugin {
 	 * Add SocialFlow link to row actions for posts and pages.
 	 */
 	public function row_actions( $actions, $post ) {
-		$url = add_query_arg( array( 'action' => 'sf-publish', 'post' => $post->ID ), admin_url() );
-		$timestamp = get_post_meta( $post->ID, 'sf_timestamp', true );
-		$title = $timestamp ? $timestamp : __( 'Send to SocialFlow', 'socialflow' );
-		$actions['sf_publish'] = '<a href="' . wp_nonce_url( $url, "sf-publish_{$post->ID}" ) . '" style="color: #532F64;" title="' . esc_attr( $title ) . '">' . __( 'Send to SocialFlow', 'socialflow' ) . '</a>';
+		if ( 'publish' == $post->post_status ) {
+			$url = add_query_arg( array( 'action' => 'sf-publish', 'post' => $post->ID ), admin_url() );
+			$timestamp = get_post_meta( $post->ID, 'sf_timestamp', true );
+			$title = $timestamp ? $timestamp : __( 'Send to SocialFlow', 'socialflow' );
+			$actions['sf_publish'] = '<a href="' . wp_nonce_url( $url, "sf-publish_{$post->ID}" ) . '" style="color: #532F64;" title="' . esc_attr( $title ) . '">' . __( 'Send to SocialFlow', 'socialflow' ) . '</a>';
+		}
 		return $actions;
 	}
 
@@ -359,15 +363,19 @@ class SocialFlow_Plugin {
 				<div id="minor-publishing-actions">
 					<ul>
 						<li id='compose'><?php _e( 'Compose', 'socialflow' ); ?></li>
-						<li id="count"><span>140</span></li>
+						<li id="sf_char_count"><span>140</span></li>
+<?php	if ( $metabox['args']['post_page'] ) : ?>
+						<li id="shorten-explanation"><p class="description"><?php _e('The link to your post will be included when your message is sent.') ?></p></li>
+<?php	else : ?>
 						<li id="shorten-links">
 							<img src="<?php echo admin_url( 'images/wpspin_light.gif' ); ?>" class="ajax-loading" id="ajax-loading" alt="">
 							<a href="#" class="shorten-links"><?php _e( 'Shorten Links', 'socialflow' ); ?></a>
 						</li>
+<?php	endif; ?>
 					</ul>
 					<textarea rows="1" cols="40" name="socialflow[text]" tabindex="6" id="sf-text"><?php if ( $metabox['args']['post_page'] ) echo esc_textarea( get_post_meta( $post->ID, 'sf_text', true ) ); ?></textarea>
 				</div>
-				
+
 			<?php if ( empty( $post ) ) : ?>
 				<div id="misc-publishing-actions">
 					<div class="misc-pub-section misc-pub-section-last">
@@ -426,7 +434,12 @@ class SocialFlow_Plugin {
 			update_post_meta( $post->ID, 'sf_timestamp', date_i18n( 'Y-m-d G:i:s', false, 'gmt' ) . ' UTC' );
 	}
 
-	public function shorten_message() {
+	// for ajaxing the list view call in future
+	// public function send_from_row_action() {
+	// 	return $this->send_message() ? '1' : '0';
+	// }
+
+	public function shorten_message( $message = '' ) {
 		if ( !$message = $_REQUEST['sf_message'] )
 			return;
 
