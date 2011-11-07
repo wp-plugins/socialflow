@@ -9,7 +9,7 @@ This plugin will not work with SocialFlow until November 29, 2011. Please check 
 SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the full power of SocialFlow from right inside your WordPress dashboard.
 
 == Description ==
-This plugin will only work with the upcoming release of SocialFlow on Novemember 29, 2011. Please check back then for updated information. 
+This plugin will only work with the upcoming release of SocialFlow on November 29, 2011. Please check back then for updated information. 
 
 The ease of WordPress and the power of SocialFlow.
 
