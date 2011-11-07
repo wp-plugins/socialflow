@@ -4,11 +4,11 @@ Requires at least: 3.2
 Tested up to: 3.3
 Stable tag: 0.11
 
-This plugin will not work with SocialFlow until November 29, 2011. Please check back for updated information. 
+The SocialFlow plugin is compatible with the next version of SocialFlow available on Nov 29, 2011. Please check back on or after that date. Thank you.
 
 
 == Description ==
-This plugin will only work with the upcoming release of SocialFlow on November 29, 2011. Please check back then for updated information. 
+The SocialFlow plugin for WordPress is compatible with the next version of SocialFlow available on Nov 29, 2011. Please check back on or after that date. Thank you.
 
 The ease of WordPress and the power of SocialFlow.
 
