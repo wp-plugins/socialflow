@@ -4,9 +4,8 @@ Requires at least: 3.2
 Tested up to: 3.3
 Stable tag: 0.11
 
-This plugin will not work with SocialFlow until November 29, 2011. Please check back then.
+This plugin will not work with SocialFlow until November 29, 2011. Please check back for updated information. 
 
-SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the full power of SocialFlow from right inside your WordPress dashboard.
 
 == Description ==
 This plugin will only work with the upcoming release of SocialFlow on November 29, 2011. Please check back then for updated information. 
