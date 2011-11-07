@@ -2,7 +2,7 @@
 Contributors: SocialFlow, Stresslimit, PeteMall
 Requires at least: 3.2
 Tested up to: 3.3
-Stable tag: 0.1
+Stable tag: 0.11
 
 This plugin will not work with SocialFlow until November 29, 2011. Please check back then.
 
