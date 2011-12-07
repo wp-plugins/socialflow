@@ -39,4 +39,4 @@ Initial Release.
 
 == Screenshots ==
 1. SocialFlow Dashboard Widget
-2. Send Post to SocialFlow Box
+2. SocialFlow Post Meta Box
