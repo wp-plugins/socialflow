@@ -1,15 +1,13 @@
 === SocialFlow ===
 Contributors: SocialFlow, Stresslimit, PeteMall
+Tags: SocialFlow, Facebook, Twitter, Social, Social Optimization, Sharing, Retweets, Social Graph
 Requires at least: 3.2
 Tested up to: 3.3
-Stable tag: 0.11
+Stable tag: 1.0
 
-The SocialFlow plugin is compatible with the next version of SocialFlow available on Nov 29, 2011. Please check back on or after that date. Thank you.
-
+SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the power of SocialFlow from right inside WordPress.
 
 == Description ==
-The SocialFlow plugin for WordPress is compatible with the next version of SocialFlow available on Nov 29, 2011. Please check back on or after that date. Thank you.
-
 The ease of WordPress and the power of SocialFlow.
 
 SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the full power of SocialFlow from right inside your WordPress dashboard.
@@ -19,3 +17,26 @@ Each time you publish a new item, use SocialFlow's powerful technology to ensure
 Craft custom headlines and updates for the social web from your WordPress dashboard or an individual post.
 
 Experience seamless social publishing that gets maximum results with WordPress and SocialFlow.
+
+==Installation==
+1. Get the SocialFlow plugin at Wordpress.org
+2. Backup your WordPress database.
+3. Go to Plugins>Add New>Upload from WordPress admin interface and follow instructions to install the plugin.
+4. SocialFlow plugin will appear at bottom of dashboard.
+5. Activate the plugin through the 'Plugins' menu in WordPress.
+6. Authorize your account from the dashboard using your SocialFlow email and password or Sign Up for a SocialFlow account if you do not already have one.*
+
+* When logging into SocialFlow there are some plugins which can interfere with the OAuth process. You may need to disable them, log in to SocialFlow and then reenable them.
+
+
+== Frequently Asked Questions ==
+Please find support and FAQ information here:
+
+http://support.socialflow.com/entries/20573086-wordpress-plugin-faq-help
+
+== Changelog == 
+Initial Release.
+
+== Screenshots ==
+1. SocialFlow Dashboard Widget
+2. Send Post to SocialFlow Box
