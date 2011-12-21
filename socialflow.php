@@ -472,7 +472,7 @@ class SocialFlow_Plugin {
 
 	public function shorten_message( $message = '' ) {
 		if ( !$message = $_REQUEST['sf_message'] )
-			return;
+			die;
 
 		$account = $_REQUEST['sf_account'];
 		$options = get_option( 'socialflow' );
