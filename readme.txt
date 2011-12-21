@@ -3,7 +3,7 @@ Contributors: SocialFlow, Stresslimit, PeteMall
 Tags: SocialFlow, Facebook, Twitter, Social, Social Optimization, Sharing, Retweets, Social Graph
 Requires at least: 3.2
 Tested up to: 3.3
-Stable tag: 1.0
+Stable tag: 1.0.1
 
 SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the power of SocialFlow from right inside WordPress.
 
@@ -35,7 +35,18 @@ Please find support and FAQ information here:
 http://support.socialflow.com/entries/20573086-wordpress-plugin-faq-help
 
 == Changelog == 
+
+= 1.0.1 =
+* Strip slashes from message text.
+* Don't enqueue SocialFlow JavaScript when the plugin is not authenticated.
+
+= 1.0 =
 Initial Release.
+
+
+== Upgrade Notice ==
+Prevent quote escaping and other minor bug fixes.
+
 
 == Screenshots ==
 1. SocialFlow Dashboard Widget

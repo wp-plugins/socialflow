@@ -4,7 +4,7 @@ Plugin Name: SocialFlow
 Plugin URI: http://wordpress.org/extend/plugins/socialflow/
 Description: 
 Author: SocialFlow, Stresslimit, PeteMall
-Version: 1.0
+Version: 1.0.1
 Author URI: http://socialflow.com/
 License: GPLv2 or later
 Text Domain: socialflow
