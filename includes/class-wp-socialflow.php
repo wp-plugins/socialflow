@@ -89,7 +89,7 @@ class WP_SocialFlow {
 			return false;
 
 		$parameters = array(
-			'message'         => $message,
+			'message'         => stripslashes( $message ),
 			'service_user_id' => $service_user_id,
 			'account_type'    => $account_type,
 			'publish_option'  => $publish_option,
@@ -109,7 +109,7 @@ class WP_SocialFlow {
 			return false;
 
 		$parameters = array(
-			'message'          => urldecode( $message ),
+			'message'          => stripslashes( urldecode( $message ) ),
 			'service_user_ids' => $service_user_ids,
 			'account_types'    => $account_types,
 			'publish_option'   => $publish_option,
@@ -143,7 +143,7 @@ class WP_SocialFlow {
 		if ( !$message || !$service_user_id || !$account_type )
 			return false;
 
-		$response = $this->get( 'link/shorten_message', array( 'service_user_id' => $service_user_id, 'account_type' => $account_type, 'message' => $message ) );
+		$response = $this->get( 'link/shorten_message', array( 'service_user_id' => $service_user_id, 'account_type' => $account_type, 'message' => stripslashes( $message ) ) );
 
 		if ( 200 == wp_remote_retrieve_response_code( $response ) )
 			return json_decode( wp_remote_retrieve_body( $response ) )->new_message;
