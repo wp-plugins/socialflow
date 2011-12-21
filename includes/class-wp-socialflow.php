@@ -84,19 +84,40 @@ class WP_SocialFlow {
 		return $token;
 	}
 
-	public function add_message( $message = '', $service_user_id, $account_type = '', $publish_option = '', $args = array() ) {
+	public function add_message( $message = '', $service_user_id, $account_type = '', $publish_option = '', $shorten_links = 0, $args = array() ) {
 		if ( ! ( $message && $service_user_id && $account_type ) )
 			return false;
 
 		$parameters = array(
-			'message'         => $message,
+			'message'         => stripslashes( $message ),
 			'service_user_id' => $service_user_id,
 			'account_type'    => $account_type,
-			'publish_option'  => $publish_option
+			'publish_option'  => $publish_option,
+			'shorten_links'   => $shorten_links
 		);
 		$paramters = array_merge( $parameters, $args );
 
 		$response = $this->post( 'message/add', $parameters );
+		if ( 200 == wp_remote_retrieve_response_code( $response ) )
+			return true;
+
+		return false;
+	}
+
+	public function add_multiple( $message = '', $service_user_ids, $account_types = '', $publish_option = 'publish now', $shorten_links = 0, $args = array() ) {
+		if ( ! ( $message && $service_user_ids && $account_types ) )
+			return false;
+
+		$parameters = array(
+			'message'          => stripslashes( urldecode( $message ) ),
+			'service_user_ids' => $service_user_ids,
+			'account_types'    => $account_types,
+			'publish_option'   => $publish_option,
+			'shorten_links'    => $shorten_links
+		);
+		$paramters = array_merge( $parameters, $args );
+
+		$response = $this->post( 'message/add_multiple', $parameters );
 		if ( 200 == wp_remote_retrieve_response_code( $response ) )
 			return true;
 
@@ -118,14 +139,14 @@ class WP_SocialFlow {
 		return $accounts;
 	}
 
-	public function shorten_links( $message = '' ) {
-		if ( !$message )
+	public function shorten_links( $message, $service_user_id, $account_type ) {
+		if ( !$message || !$service_user_id || !$account_type )
 			return false;
 
-		$response = $this->get( 'link/shorten_message', array( 'message' => $message ) );
+		$response = $this->get( 'link/shorten_message', array( 'service_user_id' => $service_user_id, 'account_type' => $account_type, 'message' => stripslashes( $message ) ) );
 
 		if ( 200 == wp_remote_retrieve_response_code( $response ) )
-			return json_decode( wp_remote_retrieve_body( $response ) )->data->new_message;
+			return json_decode( wp_remote_retrieve_body( $response ) )->new_message;
 	}
 
 	public function get_account_links( $consumer_key = '' ) {
