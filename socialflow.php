@@ -86,7 +86,7 @@ class SocialFlow_Plugin {
 		add_meta_box( 'socialflow', __( 'SocialFlow', 'socialflow' ), array( $this, 'display_compose_form' ), 'post', 'side', 'high', array( 'post_page' => true ) );
 	}
 
-	public function enqueue( $hook ) {
+	public function enqueue( $hook ) {		
 		if ( in_array( $hook, array( 'index.php', 'post-new.php', 'post.php' ) ) ) {
 			$color = 'fresh' == get_user_meta( get_current_user_id(), 'admin_color', true ) ? '#F1F1F1' : '#F5FAFD';
 			?>
@@ -119,6 +119,14 @@ class SocialFlow_Plugin {
 	.sf-count-error { color: red; }
 </style>
 			<?php
+			$options = get_option( 'socialflow' );
+			if ( 
+				! $options ||
+				empty( $options['access_token'] ) ||
+				empty( $options['access_token']['oauth_token'] ) ||
+				empty( $options['access_token']['oauth_token_secret'] ) )
+				return;
+			
 			wp_enqueue_script( 'socialflow', plugins_url( 'js/socialflow-widget.js', __FILE__ ), array( 'jquery' ), '20111020' );
 			wp_localize_script( 'socialflow', 'sf_l10n', $this->l10n );
 		} elseif ( 'edit.php' == $hook ) {
