@@ -36,6 +36,9 @@ http://support.socialflow.com/entries/20573086-wordpress-plugin-faq-help
 
 == Changelog == 
 
+= 1.1 =
+* Settings page.
+
 = 1.0.1 =
 * Strip slashes from message text.
 * Don't enqueue SocialFlow JavaScript when the plugin is not authenticated.
