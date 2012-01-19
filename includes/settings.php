@@ -7,7 +7,12 @@ class SocialFlow_Settings {
 	}
 
 	public function settings_page() {
-		?>
+		$options = get_option( 'socialflow' );
+		if ( isset( $_REQUEST['sf_disconnect'] ) ) {
+			unset( $options['access_token'] );
+			unset( $options['accounts'] );
+			update_option( 'socialflow', $options );
+		} ?>
 		<div class="wrap">
 			<?php screen_icon(); ?>
 			<h2><?php _e( 'SocialFLow Settings' ); ?></h2>
@@ -37,9 +42,28 @@ class SocialFlow_Settings {
 	}
 
 	function status_field() {
+		require_once( dirname( __FILE__ ) ) . '/class-wp-socialflow.php';
+		$sf = new WP_SocialFlow( SocialFlow_Plugin::consumer_key, SocialFlow_Plugin::consumer_secret );
+		if ( ! $request_token = $sf->get_request_token( add_query_arg( 'sf_oauth', true, admin_url() ) ) ) {
+			?><div class="misc-pub-section"><p><span class="sf-error"><?php _e( 'There was a problem communicating with the SocialFlow API. Please Try again later. If this problem persists, please email support@socialflow.com', 'socialflow' ); ?></p></div><?php
+			return;
+		}
+
+		$signup = 'http://socialflow.com/signup';
+		if ( $links = $sf->get_account_links( SocialFlow_Plugin::consumer_key ) )
+			$signup = $links->signup;
+
 		$options = get_option( 'socialflow', array() );
-		echo empty( $options['access_token'] ) ? __( 'Not Authorized', 'socialflow' ) : __( 'Authorized', 'socialflow' );
-		if ( ! empty( $options['access_token'] ) ) : ?> - <a href="<?php echo esc_url( add_query_arg( 'sf_disconnect', true, admin_url( '/' ) ) ); ?>"><?php _e( 'Disconnect', 'socialflow' ); ?></a><?php endif;
+		$options['oauth_token'] = $request_token['oauth_token'];
+		$options['oauth_token_secret'] = $request_token['oauth_token_secret'];
+		
+		update_option( 'socialflow', $options );
+
+		if ( ! empty( $options['access_token'] ) ) : ?>
+			<?php _e( 'Authorized', 'socialflow' ); ?> - <a href="<?php echo esc_url( add_query_arg( 'sf_disconnect', true, menu_page_url( 'sf-settings', false ) ) ); ?>"><?php _e( 'Disconnect', 'socialflow' ); ?></a>
+		<?php else: ?>
+			<a class="button-primary" href="<?php echo esc_url( $sf->get_authorize_url( $request_token ) ); ?>"><?php _e( 'Connect to SocialFlow', 'socialflow' ); ?></a>
+		<?php endif;
 	}
 
 	function enable_field() {

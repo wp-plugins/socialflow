@@ -2,7 +2,7 @@
 /*
 Plugin Name: SocialFlow
 Plugin URI: http://wordpress.org/extend/plugins/socialflow/
-Description: 
+Description: SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the full power of SocialFlow from right inside your WordPress dashboard.
 Author: SocialFlow, Stresslimit, PeteMall
 Version: 1.1
 Author URI: http://socialflow.com/
@@ -169,12 +169,6 @@ class SocialFlow_Plugin {
 			} else {
 				?><div class="sf-error"><p><?php _e( 'There was a problem communicating with the SocialFlow API. Please Try again later. If this problem persists, please email support@socialflow.com', 'socialflow' ); ?></p></div><?php
 			}
-		}
-
-		if ( isset( $_REQUEST['sf_disconnect'] ) ) {
-			unset( $options['access_token'] );
-			unset( $options['accounts'] );
-			update_option( 'socialflow', $options );
 		}
 
 		if ( isset( $_GET['sf_oauth'], $_GET['oauth_token'], $options['oauth_token'] ) ) {
