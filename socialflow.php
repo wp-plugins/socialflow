@@ -58,7 +58,27 @@ class SocialFlow_Plugin {
 	}
 
 	public function admin_init() {
-		if ( isset( $_GET['action'], $_GET['_wpnonce'], $_GET['post'] ) && 'sf-publish' == $_GET['action'] && wp_verify_nonce( $_GET['_wpnonce'], 'sf-publish_' . $_GET['post'] ) ) {
+		if ( isset( $_GET['sf_oauth'], $_GET['oauth_token'] ) ) {
+			$options = get_option( 'socialflow' );
+			if ( ! isset( $options['oauth_token'] ) )
+				return;
+
+			if ( $options['oauth_token'] == $_GET['oauth_token'] ) {
+				require_once( dirname( __FILE__ ) ) . '/includes/class-wp-socialflow.php';
+				$sf = new WP_SocialFlow( self::consumer_key, self::consumer_secret, $options['oauth_token'], $options['oauth_token_secret'] );
+				$options['access_token'] = $sf->get_access_token( $_GET['oauth_verifier'] );
+				unset( $options['oauth_token'] );
+				unset( $options['oauth_token_secret'] );
+				$options['publish_option'] = empty( $options['publish_option'] ) ? 'optimize' : $options['publish_option'];
+				$options['enable'] = true;
+				$options['accounts'] = $sf->get_account_list();
+				foreach ( $options['accounts'] as &$account )
+					$account['status'] = 'on';
+				update_option( 'socialflow', $options );
+				wp_redirect( admin_url() );
+				exit;
+			}
+		} elseif ( isset( $_GET['action'], $_GET['_wpnonce'], $_GET['post'] ) && 'sf-publish' == $_GET['action'] && wp_verify_nonce( $_GET['_wpnonce'], 'sf-publish_' . $_GET['post'] ) ) {
 			$referer = remove_query_arg( array( 'action', '_wpnonce', 'post' ), wp_get_referer() );
 
 			if ( $this->transition_post_status( 'publish', '', get_post( absint( $_GET['post'] ) ) ) )
@@ -168,22 +188,6 @@ class SocialFlow_Plugin {
 				?><div class="sf-updated"><p><?php _e( 'Your message has been sent.', 'socialflow' ); ?></p></div><?php
 			} else {
 				?><div class="sf-error"><p><?php _e( 'There was a problem communicating with the SocialFlow API. Please Try again later. If this problem persists, please email support@socialflow.com', 'socialflow' ); ?></p></div><?php
-			}
-		}
-
-		if ( isset( $_GET['sf_oauth'], $_GET['oauth_token'], $options['oauth_token'] ) ) {
-			if ( $options['oauth_token'] == $_GET['oauth_token'] ) {
-				require_once( dirname( __FILE__ ) ) . '/includes/class-wp-socialflow.php';
-				$sf = new WP_SocialFlow( self::consumer_key, self::consumer_secret, $options['oauth_token'], $options['oauth_token_secret'] );
-				$options['access_token'] = $sf->get_access_token( $_GET['oauth_verifier'] );
-				unset( $options['oauth_token'] );
-				unset( $options['oauth_token_secret'] );
-				$options['publish_option'] = empty( $options['publish_option'] ) ? 'optimize' : $options['publish_option'];
-				$options['enable'] = true;
-				$options['accounts'] = $sf->get_account_list();
-				foreach ( $options['accounts'] as &$account )
-					$account['status'] = 'on';
-				update_option( 'socialflow', $options );
 			}
 		}
 
