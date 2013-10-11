@@ -25,33 +25,36 @@ class SocialFlow_Post {
 	 */
 	function __construct() {
 
-		// Add posts columns
-		add_action( 'admin_init', array( &$this, 'manage_posts_columns' ) );
+		if ( is_admin() ) {
 
-		// Add meta box
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_box') );
+			// Add posts columns
+			add_action( 'admin_init', array( &$this, 'manage_posts_columns' ) );
+
+			// Add meta box
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_box') );
+
+			// Ajax response with thumbnails
+			add_action( 'wp_ajax_sf_attachments', array( &$this, 'ajax_post_attachments' ) );
+
+			// Output compose form on ajax call
+			add_action( 'wp_ajax_sf-composeform', array( &$this, 'ajax_compose_form' ) );
+
+			// Compose message to socialflow via ajax
+			add_action( 'wp_ajax_sf-compose', array( &$this, 'ajax_compose' ) );
+
+			// Get single message via ajax request
+			add_action( 'wp_ajax_sf-get-message', array( &$this, 'sf_get_message' ) );
+
+			// Add new updated message
+			add_filter( 'post_updated_messages', array(&$this, 'post_updated_messages') );
+
+			// Ouput js settings object if necessary
+			add_action( 'admin_footer', array( &$this, 'post_settings' ) );
+		}
 
 		// Add save action
 		// Meta data is saved and message composition may be processed
 		add_action( 'transition_post_status', array( $this, 'transition_post_status'), 1, 3 );
-
-		// Ajax response with thumbnails
-		add_action( 'wp_ajax_sf_attachments', array( &$this, 'ajax_post_attachments' ) );
-
-		// Output compose form on ajax call
-		add_action( 'wp_ajax_sf-composeform', array( &$this, 'ajax_compose_form' ) );
-
-		// Compose message to socialflow via ajax
-		add_action( 'wp_ajax_sf-compose', array( &$this, 'ajax_compose' ) );
-
-		// Get single message via ajax request
-		add_action( 'wp_ajax_sf-get-message', array( &$this, 'sf_get_message' ) );
-
-		// Add new updated message
-		add_filter( 'post_updated_messages', array(&$this, 'post_updated_messages') );
-
-		// Ouput js settings object if necessary
-		add_action( 'admin_footer', array( &$this, 'post_settings' ) );
 	}
 
 	/**
@@ -220,6 +223,8 @@ class SocialFlow_Post {
 		// Check if we are dealing with revision
 		if ( 'revision' == $post->post_type )
 			return;
+
+		remove_action( 'transition_post_status', array( &$this, 'transition_post_status'), 1, 3 );
 
 		// Check if we are not in shceduled publishing scenario
 		if ( !( 'future' == $previous_status && 'publish' == $post_status ) ) {
@@ -697,7 +702,7 @@ class SocialFlow_Post {
 
 				// Render compact stats table
 				$socialflow->render_view( 'stats/compact', $this->get_view_stat_data( $post_id ) );
-			} elseif ( 'draft' == get_post_status( $post_id ) && ( get_post_meta( $post_id, 'sf_message_facebook', true ) || get_post_meta( $post_id, 'sf_message_twitter', true ) ) ) {
+			} elseif ( 'publish' !== get_post_status( $post_id ) && ( get_post_meta( $post_id, 'sf_message_facebook', true ) || get_post_meta( $post_id, 'sf_message_twitter', true ) ) ) {
 				echo '<img src="'. plugins_url( 'assets/images/notice.gif', SF_FILE ) .'" width="12" height="12" title="'. __( 'SocialFlow data filled', 'socialflow' ) .'" alt="'. __( 'SocialFlow data filled', 'socialflow' ) .'" />';
 			}
 		}

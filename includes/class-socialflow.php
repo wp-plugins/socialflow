@@ -86,18 +86,19 @@ class SocialFlow extends SocialFlow_Methods {
 			// Initialize main admin object
 			new SocialFlow_Admin;
 
-			// Initialize Post object
-			new SocialFlow_Post;
-
-			// Initialize Accounts object
-			$this->accounts = new SocialFlow_Accounts;
-
 			// Initialize update handler if versions doesn't match
 			if ( SF_VERSION !== $this->options->get( 'version' ) ) {
 				new SocialFlow_Update;
 			}
-
 		}
+
+		// This part is moved outside to let it handle cron scheduled post publication
+
+		// Initialize Post object
+		new SocialFlow_Post;
+
+		// Initialize Accounts object
+		$this->accounts = new SocialFlow_Accounts;
 	}
 
 	/**
