@@ -22,19 +22,19 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 		$this->slug = 'categories';
 
 		// Store current page object
-		$socialflow->pages[ $this->slug ] = &$this;
+		$socialflow->pages[ $this->slug ] = $this;
 
 		// Add action to add menu page
-		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
+		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 
 		// Add update notice
-		add_action( 'admin_notices', array( &$this, 'admin_notices' ) );
+		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 
 		// ajax listner to connect or disconnect user and term
-		add_action( 'wp_ajax_sf_term_account', array( &$this, 'ajax_connect_term_account' ) );
+		add_action( 'wp_ajax_sf_term_account', array( $this, 'ajax_connect_term_account' ) );
 
 		// Add js object with term account relations
-		add_action( 'admin_enqueue_scripts', array( &$this, 'admin_enqueue_scripts' ), 20 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 20 );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 			__( 'Category Routing', 'socialflow' ),
 			'manage_options',
 			$this->slug,
-			array( &$this, 'page' )
+			array( $this, 'page' )
 		);
 	}
 
@@ -63,14 +63,16 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 	 */
 	function page() {
 		global $socialflow; ?>
-		<div class="wrap socialflow" id="socialflow-<?php echo $this->slug; ?>">
-			<div class="icon32"><img src="<?php echo plugins_url( '/socialflow/assets/images/socialflow.png' ) ?>" alt=""></div>
-			<h2><?php esc_html_e( 'Category Routing', 'socialflow' ); ?> <img class="sf-loader" style="display:none;" src="<?php echo plugins_url( '/socialflow/assets/images/wpspin.gif' ) ?>" alt=""> </h2>
+		<div class="wrap socialflow" id="socialflow-<?php echo esc_attr( $this->slug ); ?>">
+			<div class="icon32"><img src="<?php echo plugins_url( 'assets/images/socialflow.png', SF_FILE ) ?>" alt=""></div>
+			<h2><?php esc_html_e( 'Category Routing', 'socialflow' ); ?> <img class="sf-loader" style="display:none;" src="<?php echo plugins_url( 'assets/images/wpspin.gif', SF_FILE ) ?>" alt=""> </h2>
 
 			<?php $this->display_list(); ?>
 			<?php $this->display_insert_form(); ?>
 		</div>
 		<?php
+
+		wp_localize_script( 'socialflow-categories', 'sf_categories', array( 'security' => wp_create_nonce( SF_ABSPATH ) ) );
 	}
 
 	/**
@@ -126,8 +128,8 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 			return;
 		?>
 		<tr class="alternate">
-			<td class="category column-category"><?php echo $term->name; ?></td>
-			<td data-term_id="<?php echo $term->term_id; ?>" data-taxonomy="<?php echo $term->taxonomy ?>" class="accounts column-accounts catetory-accounts" id="js-term-accounts-<?php echo $term->term_id; ?>">
+			<td class="category column-category"><?php echo esc_attr( $term->name ); ?></td>
+			<td data-term_id="<?php echo esc_attr( $term->term_id ); ?>" data-taxonomy="<?php echo esc_attr( $term->taxonomy); ?>" class="accounts column-accounts catetory-accounts" id="js-term-accounts-<?php echo esc_attr( $term->term_id ); ?>">
 				<?php foreach ( $accounts as $account_id ) {
 					$this->account_content( $account_id );
 				} ?>
@@ -148,7 +150,7 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 	function account_content( $account_id ) {
 		global $socialflow;
 		?>
-		<span data-account_id="<?php echo $account_id ?>" class="category-account-item"><?php echo $socialflow->accounts->get_display_name( $account_id ) ?> <b class="js-remove-connection close">x</b></span>
+		<span data-account_id="<?php echo esc_attr( $account_id ); ?>" class="category-account-item"><?php echo esc_attr( $socialflow->accounts->get_display_name( $account_id ) ) ?> <b class="js-remove-connection close">x</b></span>
 		<?php
 	}
 
@@ -165,7 +167,7 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 			<select id="sf-select-account" name="account_id">
 				<option value="-1"><?php _e( 'Select Account', 'socialflow' ); ?></option>
 				<?php foreach ( $socialflow->accounts->get( $socialflow->options->get( 'show' ) ) as $account_id => $account ) : ?>
-					<option value="<?php echo $account_id ?>" ><?php echo $socialflow->accounts->get_display_name( $account ); ?></option>
+					<option value="<?php echo esc_attr( $account_id ); ?>" ><?php echo esc_attr( $socialflow->accounts->get_display_name( $account ) ); ?></option>
 				<?php endforeach ?>
 			</select>
 			<?php wp_dropdown_categories(array(
@@ -175,7 +177,7 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 				'show_option_none' => __( 'Select Category' )
 			)); ?>
 			<input class="button" type="submit" value="<?php _e( 'Add', 'socialflow' ) ?>" />
-			<img class="sf-loader" style="display:none;" src="<?php echo plugins_url( '/socialflow/assets/images/wpspin.gif' ) ?>" alt="">
+			<img class="sf-loader" style="display:none;" src="<?php echo plugins_url( 'assets/images/wpspin.gif', SF_FILE ) ?>" alt="">
 		</form>
 		<?php
 	}
@@ -189,6 +191,8 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 	 * @return void output json with result status
 	 */
 	function ajax_connect_term_account() {
+		check_ajax_referer( SF_ABSPATH, 'security' );
+
 		$account_id = (int) $_GET['account_id'];
 		$term_id = (int) $_GET['term_id'];
 		$taxonomy = 'category';
@@ -222,7 +226,7 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 			$data['html'] = ob_get_clean();
 		}
 
-		exit( json_encode( $data ) );
+		wp_send_json( $data );
 	}
 
 	/**

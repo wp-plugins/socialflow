@@ -19,13 +19,13 @@ class SocialFlow_Admin_Settings_Accounts extends SocialFlow_Admin_Settings_Page 
 			return;
 
 		// add save filter
-		add_filter( 'sf_save_settings', array( &$this, 'save_settings' ) );
+		add_filter( 'sf_save_settings', array( $this, 'save_settings' ) );
 
 		// add save filter
-		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
+		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 
 		// Add update notice
-		add_action( 'admin_notices', array( &$this, 'admin_notices' ) );
+		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 	}
 
 	/**
@@ -42,7 +42,7 @@ class SocialFlow_Admin_Settings_Accounts extends SocialFlow_Admin_Settings_Page 
 			__( 'Account Settings', 'socialflow' ),
 			'manage_options',
 			$this->slug,
-			array( &$this, 'page' )
+			array( $this, 'page' )
 		);
 	}
 
@@ -52,7 +52,7 @@ class SocialFlow_Admin_Settings_Accounts extends SocialFlow_Admin_Settings_Page 
 	function page() {
 		global $socialflow; ?>
 		<div class="wrap socialflow">
-			<div class="icon32"><img src="<?php echo plugins_url( '/socialflow/assets/images/socialflow.png' ) ?>" alt=""></div>
+			<div class="icon32"><img src="<?php echo plugins_url( 'assets/images/socialflow.png', SF_FILE ) ?>" alt=""></div>
 			<h2><?php esc_html_e( 'Account Settings', 'socialflow' ); ?></h2>
 
 			<form action="options.php" method="post">
@@ -103,15 +103,15 @@ class SocialFlow_Admin_Settings_Accounts extends SocialFlow_Admin_Settings_Page 
 					  $send = in_array( $account_id, $socialflow->options->get( 'send', array() ) ); ?>
 				<tr class="alternate">
 					<td class="username column-username">
-						<img width="32" height="32" class="avatar avatar-32 photo" src="<?php echo $account['avatar'] ?>" alt="" />
-						<strong><?php echo $account['name'] ?></strong>
+						<img width="32" height="32" class="avatar avatar-32 photo" src="<?php echo esc_url( $account['avatar'] ); ?>" alt="" />
+						<strong><?php echo esc_html( $account['name'] ); ?></strong>
 					</td>
-					<td class="name column-account-type"><?php echo ucfirst(str_replace('_', ' ', $account['account_type'])); ?></td>
+					<td class="name column-account-type"><?php echo esc_html( ucfirst(str_replace('_', ' ', $account['account_type'] ) ) ); ?></td>
 					<td style="padding: 9px 0 22px 15px;">
-						<input type="checkbox" value="<?php echo $account['client_service_id'] ?>" class="sf-account-show" name="socialflow[show][]" <?php checked( true, $show ); ?> />
+						<input type="checkbox" value="<?php echo esc_attr( $account['client_service_id'] ) ?>" class="sf-account-show" name="socialflow[show][]" <?php checked( true, $show ); ?> />
 					</td>
 					<td style="padding: 9px 0 22px 15px;">
-						<input type="checkbox" value="<?php echo $account['client_service_id'] ?>" class="sf-account-send" name="socialflow[send][]" <?php checked( true, $send ); ?> />
+						<input type="checkbox" value="<?php echo esc_attr( $account['client_service_id'] ); ?>" class="sf-account-send" name="socialflow[send][]" <?php checked( true, $send ); ?> />
 					</td>
 				</tr>
 				<?php endforeach ?>

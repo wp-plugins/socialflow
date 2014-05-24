@@ -19,7 +19,7 @@ class SocialFlow_Admin_Settings_Messages extends SocialFlow_Admin_Settings_Page 
 		if ( $socialflow->is_authorized() ) {
 
 			// Store current page object
-			$socialflow->pages[ $this->slug ] = &$this;
+			$socialflow->pages[ $this->slug ] = $this;
 
 			// add menu subpage
 			add_submenu_page( 
@@ -28,16 +28,16 @@ class SocialFlow_Admin_Settings_Messages extends SocialFlow_Admin_Settings_Page 
 				__( 'Messages', 'socialflow' ),
 				'manage_options',
 				$this->slug,
-				array( &$this, 'page' )
+				array( $this, 'page' )
 			);
 
 			// add action to delete message
-			add_action( 'admin_init' , array( &$this, 'delete_message' ) );
+			add_action( 'admin_init' , array( $this, 'delete_message' ) );
 			// add action to update queue
-			add_action( 'admin_init' , array( &$this, 'update_queue' ) );
+			add_action( 'admin_init' , array( $this, 'update_queue' ) );
 
 			// Add notices
-			add_action( 'admin_notices', array( &$this, 'message_deleted' ) );
+			add_action( 'admin_notices', array( $this, 'message_deleted' ) );
 		}
 	}
 
@@ -50,7 +50,7 @@ class SocialFlow_Admin_Settings_Messages extends SocialFlow_Admin_Settings_Page 
 		$accounts = $socialflow->accounts->get( array( array( 'key' => 'service_type', 'value' => 'publishing' ) ) ); ?>
 
 		<div class="wrap socialflow">
-			<h2><?php esc_html_e( 'Messages', 'socialflow' ); ?> <a class="button" href="<?php echo admin_url( 'admin.php?page=' . $this->slug . '&sf_action=update_queue' ) ?>">Update messages.</a></h2>
+			<h2><?php esc_html_e( 'Messages', 'socialflow' ); ?> <a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . $this->slug . '&sf_action=update_queue' ) ); ?>">Update messages.</a></h2>
 
 			<?php if ( empty( $accounts ) ): ?>
 				<p><?php _e( "You don't have any accounts on SocialFlow.", 'socialflow' ) ?></p>
@@ -113,10 +113,10 @@ class SocialFlow_Admin_Settings_Messages extends SocialFlow_Admin_Settings_Page 
 					<?php foreach ( $queue->queue as $message ) : ?>
 					<tr class="alternate">
 						<td class="username column-username">
-							<?php echo $message->content ?>
+							<?php echo esc_textarea( $message->content ); ?>
 						</td>
-						<td class="name column-account-type"><?php echo $message->status ?></td>
-						<td><a class="clickable" href="<?php echo admin_url( 'admin.php?page=' . $this->slug . '&item_id=' . $message->content_item_id . '&service_user_id=' . $account['service_user_id'] . '&account_type=' . $account['account_type'] . '&sf_action=delete' ) ?>">delete</a></td>
+						<td class="name column-account-type"><?php echo esc_attr( $message->status ); ?></td>
+						<td><a class="clickable" href="<?php echo esc_url( admin_url( 'admin.php?page=' . $this->slug . '&item_id=' . $message->content_item_id . '&service_user_id=' . $account['service_user_id'] . '&account_type=' . $account['account_type'] . '&sf_action=delete' ) ); ?>">delete</a></td>
 					</tr>
 					<?php endforeach ?>
 				</tbody>

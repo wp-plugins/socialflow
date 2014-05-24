@@ -82,6 +82,14 @@
 	width: 130px;
 }
 
+/**
+ * Hide Google plus tabs 
+ */
+/*.socialflow-compose .google_plus-tab-panel,
+.socialflow-compose .google_plus-tab-item {
+	display: none;
+}*/
+
 /* Compose form inside thickbox */
 #TB_window .sf_compose {
 	display:none;

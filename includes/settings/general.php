@@ -15,18 +15,15 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 		$this->slug = 'socialflow';
 
 		// Store current page object
-		$socialflow->pages[ $this->slug ] = &$this;
+		$socialflow->pages[ $this->slug ] = $this;
 
-		// Add action to add menu page
-		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
+		// General menu page
+		add_action( 'admin_menu', array( $this, 'admin_menu' ) ); 
 
-		add_filter( 'sf_save_settings', array( &$this, 'save_settings' ) );
+		add_filter( 'sf_save_settings', array( $this, 'save_settings' ) );
 
 		// Add update notice
-		add_action( 'admin_notices', array( &$this, 'admin_notices' ) );
-
-		// Include scripts
-		add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_scripts' ) );
+		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 	}
 
 	/**
@@ -42,7 +39,7 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 			__( 'SocialFlow', 'socialflow' ),
 			'manage_options',
 			$this->slug,
-			array( &$this, 'page' ),
+			array( $this, 'page' ),
 			plugin_dir_url( SF_FILE ) . 'assets/images/menu-icon.png'
 		);
 		
@@ -52,9 +49,146 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 			__( 'Default Settings', 'socialflow' ),
 			'manage_options',
 			$this->slug,
-			array( &$this, 'page' )
+			array( $this, 'page' )
 		);
 
+		// General section is both for authorized and for non authorized users
+		add_settings_section(
+			'general_settings_section',
+			null,
+			'__return_false',
+			$this->slug
+		);
+
+		add_settings_field( 
+			'publish_option',
+			__( 'Default Publishing Option:', 'socialflow' ),
+			array( &$this, 'settings_field_publish_option' ),
+			$this->slug,
+			'general_settings_section',
+			$this->get_publish_options() // The array of arguments to pass to the callback.
+		);
+
+		add_settings_field( 
+			'optimize_publish_option_advanced',
+			null,
+			array( &$this, 'settings_field_optimize_publish_option' ),
+			$this->slug,
+			'general_settings_section',
+			$this->get_publish_options() // The array of arguments to pass to the callback.
+		);
+
+		add_settings_field( 
+			'compose_now',
+			__( 'Send to SocialFlow when the post is published:', 'socialflow' ),
+			array( &$this, 'settings_field_compose_now_option' ),
+			$this->slug,
+			'general_settings_section'
+		);
+
+		add_settings_field( 
+			'shorten_links',
+			__( 'Shorten Links:', 'socialflow' ),
+			array( &$this, 'settings_field_shorten_links_option' ),
+			$this->slug,
+			'general_settings_section'
+		);
+
+		add_settings_field( 
+			'post_type',
+			__( 'Enable plugin for this post types:', 'socialflow' ),
+			array( &$this, 'settings_field_post_type_option' ),
+			$this->slug,
+			'general_settings_section'
+		);
+	}
+
+	/**
+	 * Default Publishing options
+	 * @param  array  $args Available publishing optoins
+	 * @return void
+	 */
+	public function settings_field_publish_option( $args = array() ) {
+		global $socialflow;
+		$current = $socialflow->options->get('publish_option');
+		?>
+		<select name="<?php echo $this->slug; ?>[publish_option]" id="js-publish-options">
+			<?php foreach ( $args as $value => $label ): ?>
+				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $value, $current ); ?>><?php echo esc_attr( $label ); ?></option>
+			<?php endforeach ?>
+		</select>
+		<?php
+	}
+
+	public function settings_field_optimize_publish_option() {
+		global $socialflow;
+
+		// grouped options
+		$must_send = $socialflow->options->get('must_send');
+		$optimize_period = $socialflow->options->get('optimize_period');
+		$optimize_start_date = $socialflow->options->get('optimize_start_date');
+		$optimize_end_date = $socialflow->options->get('optimize_end_date');
+
+		?><div class="optimize" <?php if ( 'optimize' != $socialflow->options->get( 'publish_option' ) ) echo 'style="display:none;"' ?> id="js-optimize-options">
+			<input id="sf_must_send" type="checkbox" value="1" name="socialflow[must_send]" <?php checked( 1, $must_send ); ?> />
+			<label for="sf_must_send"><?php _e( 'Must Send', 'socialflow' ); ?></label>
+
+			<select name="socialflow[optimize_period]" id="js-optimize-period">
+				<?php foreach ( self::get_optimize_periods() as $value => $label ): ?>
+					<option <?php selected( $optimize_period, $value ); ?> value="<?php echo esc_attr( $value ) ?>" ><?php echo esc_attr( $label ); ?></option>
+				<?php endforeach ?>
+			</select>
+
+			<span class="range" <?php if ( 'range' != $optimize_period ) echo 'style="display:none;"' ?> id="js-optimize-range">
+				<label for="optimize-from">from</label> <input type="text" value="<?php echo esc_attr( $optimize_start_date ); ?>" class="datetimepicker" name="socialflow[optimize_start_date]" data-tz-offset="<?php echo absint( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ?>" />
+				<label for="optimize-from">to</label> <input type="text" value="<?php echo esc_attr( $optimize_end_date ); ?>" class="datetimepicker" name="socialflow[optimize_end_date]" data-tz-offset="<?php echo absint( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ?>" />
+			</span>
+		</div><?php
+	}
+
+	/**
+	 * Select if upon publication post by default will be send to SocialFlow or not
+	 * @return void
+	 */
+	public function settings_field_compose_now_option() {
+		global $socialflow;
+		?><input id="sf_compose_now" type="checkbox" value="1" name="socialflow[compose_now]" <?php checked( 1, $socialflow->options->get( 'compose_now' ) ) ?> /><?php
+	}
+
+	/**
+	 * Should shorten links checkbox be checked by default 
+	 * @return void
+	 */
+	public function settings_field_shorten_links_option() {
+		global $socialflow;
+		?><input id="sf_shorten_links" type="checkbox" value="1" name="socialflow[shorten_links]" <?php checked( 1, $socialflow->options->get( 'shorten_links' ) ) ?> /><?php
+	}
+
+	/**
+	 * Enable SocialFlow compose form for specific post types
+	 * @return void
+	 */
+	public function settings_field_post_type_option() {
+		global $socialflow;
+		$checked = $socialflow->options->get( 'post_type', array() );
+
+		$types = get_post_types( 
+			array(
+				'public'  => true,
+				'show_ui' => true
+			),
+			'objects'
+		);
+
+		// Skip attachments
+		if ( isset( $types['attachment'] ) )
+			unset( $types['attachment'] );
+
+		foreach ( $types as $type => $post_type ) : ?>
+			<input type="checkbox" value="<?php echo esc_attr( $type ); ?>" name="socialflow[post_type][]" <?php checked( true, in_array( $type, $checked ) ) ?> id="sf_post_types-<?php echo esc_attr( $type ); ?>" />
+			<label for="sf_post_types-<?php echo esc_attr( $type ); ?>"><?php echo esc_attr( $post_type->labels->name ); ?></label>
+			<br>
+		<?php endforeach;
 	}
 
 	/**
@@ -63,20 +197,21 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 	function page() {
 		global $socialflow; ?>
 		<div class="wrap socialflow">
-			<div class="icon32"><img src="<?php echo plugins_url( '/socialflow/assets/images/socialflow.png' ) ?>" alt=""></div>
+			<div class="icon32"><img src="<?php echo plugins_url( 'assets/images/socialflow.png', SF_FILE ) ?>" alt=""></div>
 			<h2><?php esc_html_e( 'Default Settings', 'socialflow' ); ?></h2>
 
-			<form action="options.php" method="post">
-				<?php if ( ! $socialflow->options->get( 'access_token' ) ) {
-					$this->authorize_settings();
-				} else {
-					$this->basic_settings(); ?>
-					<p><input type="submit" name="submit" class="button-primary" value="<?php esc_attr_e( 'Save Changes', 'socialflow' ) ?>" /></p>
-				<?php } ?>
+			<?php settings_errors( $this->slug ); ?>
 
-				<?php // Render the hidden input fields and handle the security aspects.  ?>
-				<?php settings_fields( 'socialflow' ); ?>
-				<input type="hidden" value="socialflow" name="socialflow-page" />
+			<form method="post" action="options.php">
+				<?php settings_fields( $this->slug ); ?>
+				<?php
+				if ( $socialflow->options->get( 'access_token' ) ) {
+					do_settings_sections( $this->slug );
+					submit_button();
+				}
+				else
+					$this->authorize_settings();
+				?>
 			</form>
 
 			<?php if ( $socialflow->options->get( 'access_token' ) ) : ?>
@@ -88,6 +223,7 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 			</p>
 			<?php endif; ?>
 		</div>
+
 		<?php
 	}
 
@@ -128,89 +264,6 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 	}
 
 	/**
-	 * Outputs HTML for "Basic" settings tab
-	 *
-	 * @since 2.0
-	 * @access public
-	 */
-	function basic_settings() {
-		global $socialflow; ?>
-
-		<table class="form-table">
-
-			<tr valign="top">
-				<th scope="row"><label for="sf_publish_option"><?php _e( 'Default Publishing Option:', 'socialflow' ); ?></label></th>
-				<td>
-					<select name="socialflow[publish_option]" id="js-publish-options">
-						<option value="optimize" <?php selected( $socialflow->options->get( 'publish_option' ), 'optimize' ); ?>><?php _e( 'Optimize', 'socialflow' ); ?></option>
-						<option value="publish now" <?php selected( $socialflow->options->get( 'publish_option' ), 'publish now' ); ?>><?php _e( 'Publish Now', 'socialflow' ); ?></option>
-						<option value="hold" <?php selected( $socialflow->options->get( 'publish_option' ), 'hold' ); ?>><?php _e( 'Hold', 'socialflow' ); ?></option>
-						<option value="schedule" <?php selected( $socialflow->options->get( 'publish_option' ), 'schedule' ); ?>><?php _e( 'Schedule', 'socialflow' ); ?></option>
-					</select>
-					<div class="optimize" <?php if ( 'optimize' != $socialflow->options->get( 'publish_option' ) ) echo 'style="display:none;"' ?> id="js-optimize-options">
-						<br />
-
-						<input id="sf_must_send" type="checkbox" value="1" name="socialflow[must_send]" <?php checked( 1, $socialflow->options->get( 'must_send' ) ) ?> />
-						<label for="sf_must_send"><?php _e( 'Must Send', 'socialflow' ); ?></label>
-
-						<select name="socialflow[optimize_period]" id="js-optimize-period">
-							<option <?php selected( $socialflow->options->get( 'optimize_period' ), '10 minutes' ); ?> value="10 minutes" >10 minutes</option>
-							<option <?php selected( $socialflow->options->get( 'optimize_period' ), '1 hour' ); ?> value="1 hour">1 hour</option>
-							<option <?php selected( $socialflow->options->get( 'optimize_period' ), '1 day' ); ?> value="1 day">1 day</option>
-							<option <?php selected( $socialflow->options->get( 'optimize_period' ), '1 week' ); ?> value="1 week">1 week</option>
-							<option <?php selected( $socialflow->options->get( 'optimize_period' ), 'anytime' ); ?> value="anytime">Anytime</option>
-							<option <?php selected( $socialflow->options->get( 'optimize_period' ), 'range' ); ?> value="range">Pick a range</option>
-						</select>
-
-						<span class="range" <?php if ( 'range' != $socialflow->options->get( 'optimize_period' ) ) echo 'style="display:none;"' ?> id="js-optimize-range">
-							<label for="optimize-from">from</label> <input type="text" value="<?php echo $socialflow->options->get( 'optimize_start_date' ) ?>" class="datetimepicker" name="socialflow[optimize_start_date]" data-tz-offset="<?php echo ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ?>" />
-							<label for="optimize-from">to</label> <input type="text" value="<?php echo $socialflow->options->get( 'optimize_end_date' ) ?>" class="datetimepicker" name="socialflow[optimize_end_date]" data-tz-offset="<?php echo ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) ?>" />
-						</span>
-
-					</div>
-				</td>
-			</tr>
-
-			<tr valign="top">
-				<th scope="row"><label for="sf_compose_now"><?php _e( 'Send to SocialFlow when the post is published:', 'socialflow' ); ?></label></th>
-				<td><input id="sf_compose_now" type="checkbox" value="1" name="socialflow[compose_now]" <?php checked( 1, $socialflow->options->get( 'compose_now' ) ) ?> /></td>
-			</tr>
-
-			<tr valign="top">
-				<th scope="row"><label for="sf_shorten_links"><?php _e( 'Shorten Links:', 'socialflow' ); ?></label></th>
-				<td><input id="sf_shorten_links" type="checkbox" value="1" name="socialflow[shorten_links]" <?php checked( 1, $socialflow->options->get( 'shorten_links' ) ) ?> /></td>
-			</tr>
-
-			<tr valign="top">
-				<th scope="row"><label for="post_types"><?php _e( 'Enable plugin for this post types:', 'socialflow' ); ?></label></th>
-				<td>
-					<?php 
-					$types = get_post_types( 
-						array(
-							'public'  => true,
-							'show_ui' => true
-						),
-						'objects'
-					);
-
-					if ( isset( $types['attachment'] ) ) {
-						unset( $types['attachment'] );
-					}
-					$checked = $socialflow->options->get( 'post_type', array() );
-					foreach ( $types as $type => $post_type ) : ?>
-						<input type="checkbox" value="<?php echo $type ?>" name="socialflow[post_type][]" <?php checked( true, in_array( $type, $checked ) ) ?> id="sf_post_types-<?php echo $type ?>" />
-						<label for="sf_post_types-<?php echo $type ?>"><?php echo $post_type->labels->name ?></label>
-						<br>
-					<?php endforeach; ?>
-				</td>
-			</tr>
-		
-		</table>
-		<?php
-	}
-
-
-	/**
 	 * Sanitizes settings
 	 *
 	 * Callback for "sf_save_settings" hook in method SocialFlow_Admin::save_settings()
@@ -230,16 +283,20 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 
 		$data = $_POST['socialflow'];
 
-		if ( isset( $_POST['socialflow-page'] ) AND ( $this->slug == $_POST['socialflow-page'] ) ) {
+		if ( isset( $_POST['option_page'] ) AND ( $this->slug == $_POST['option_page'] ) ) {
 
-			// Sanitize new settings
-			$settings['publish_option'] = esc_attr( $data['publish_option'] );
+			// Whitelist validation
+			if ( isset( $data['publish_option'] ) && array_key_exists( $data['publish_option'], self::get_publish_options() ) )
+				$settings['publish_option'] = $data['publish_option'];
 
-			$settings['optimize_period'] = isset( $data['optimize_period'] ) ? esc_attr( $data['optimize_period'] ) : null;
-			$settings['optimize_range_from'] = isset( $data['optimize_range_from'] ) ? esc_attr( $data['optimize_range_from'] ) : null;
-			$settings['optimize_range_to'] = isset( $data['optimize_range_to'] ) ? esc_attr( $data['optimize_range_to'] ) : null;
+			if ( isset( $data['optimize_period'] ) && array_key_exists( $data['optimize_period'], self::get_optimize_periods() ) )
+				$settings['optimize_period'] = $data['optimize_period'];
 
-			$settings['post_type'] = isset( $data['post_type'] ) ? array_map( 'esc_attr', $data['post_type'] ) : array();
+			$settings['optimize_range_from'] = isset( $data['optimize_range_from'] ) ? sanitize_text_field( $data['optimize_range_from'] ) : null;
+			$settings['optimize_range_to'] = isset( $data['optimize_range_to'] ) ? sanitize_text_field( $data['optimize_range_to'] ) : null;
+
+			$settings['post_type'] = isset( $data['post_type'] ) ? array_map( 'sanitize_text_field', $data['post_type'] ) : array();
+
 			$settings['shorten_links'] = isset( $data['shorten_links'] ) ? absint( $data['shorten_links']) : 0;
 			$settings['must_send'] = isset( $data['must_send'] ) ? absint( $data['must_send'] ) : 0;
 			$settings['compose_now'] = isset( $data['compose_now'] ) ? absint( $data['compose_now'] ) : 0;
@@ -249,14 +306,31 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 	}
 
 	/**
-	 * Enqueue general settngs scripts
-	 * @param  string $hook current page hook
-	 * @return void       
+	 * Available publish options
+	 * @return array Publish options with labels
 	 */
-	function enqueue_scripts( $hook ) {
-		if ( 'toplevel_page_socialflow' == $hook ) {
-			
-		}
+	public function get_publish_options() {
+		return array(
+			'optimize' => __( 'Optimize', 'socialflow' ),
+			'publish now' => __( 'Publish Now', 'socialflow' ),
+			'hold' => __( 'Hold', 'socialflow' ),
+			'schedule' => __( 'Schedule', 'socialflow' ),
+		);
+	}
+
+	/**
+	 * Available optimize periods
+	 * @return array Optimize perfiods with labels
+	 */
+	public function get_optimize_periods() {
+		return array(
+			'10 minutes' => __( '10 minutes', 'socialflow' ),
+			'1 hour' => __( '1 hour', 'socialflow' ),
+			'1 day' => __( '1 day', 'socialflow' ),
+			'1 week' => __( '1 week', 'socialflow' ),
+			'anytime' => __( 'Anytime', 'socialflow' ),
+			'range' => __( 'Pick a range', 'socialflow' )
+		);
 	}
 
 }

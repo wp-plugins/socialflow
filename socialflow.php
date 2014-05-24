@@ -3,7 +3,7 @@
 Plugin Name: SocialFlow
 Description: SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the power of SocialFlow from right inside WordPress.
 Author: SocialFlow, Dizzain
-Version: 2.1
+Version: 2.3
 Author URI: http://socialflow.com/
 License: GPLv2 or later
 Text Domain: socialflow
@@ -19,7 +19,7 @@ Domain Path: /i18n
  * @since 2.1
  */
 if ( !defined( 'SF_VERSION' ) )
-	define( 'SF_VERSION', '2.1' );
+	define( 'SF_VERSION', '2.3' );
 
 /**
  * The name of the SocialFlow Core file
@@ -44,15 +44,6 @@ if ( !defined( 'SF_ABSPATH' ) )
  */
 if ( !defined( 'SF_DIRNAME' ) )
 	define( 'SF_DIRNAME', basename( SF_ABSPATH ) );
-
-/**
- * Enable debug mode
- *
- * @since 2.0
- */
-if ( !defined( 'SF_DEBUG' ) )
-	define( 'SF_DEBUG', false );
-
 
 /**
  * Define Consumer Key
@@ -86,4 +77,4 @@ require_once( SF_ABSPATH . '/includes/class-plugin-view.php' );
  * @global object $socialflow
  * @since 2.0
  */
-$GLOBALS['socialflow'] =& new SocialFlow();
+$GLOBALS['socialflow'] = new SocialFlow();

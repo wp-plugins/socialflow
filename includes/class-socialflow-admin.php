@@ -15,19 +15,16 @@ class SocialFlow_Admin {
 	function __construct() {
 
 		// Register setting and maybe perform authorization
-		add_action( 'admin_init', array( &$this, 'admin_init' ) );
+		add_action( 'admin_init', array( $this, 'admin_init' ) );
 
 		// Load admin menu classes
 		$this->admin_menu();
 
 		// Add notices
-		add_action( 'admin_notices', array( &$this, 'initial_nag' ) );
+		add_action( 'admin_notices', array( $this, 'initial_nag' ) );
 
 		// Include scripts
-		add_action( 'admin_enqueue_scripts', array( &$this, 'load_settings_page' ) );
-
-		// Increase http request timeout
-		//add_filter( 'http_request_timeout', array( &$this, 'http_request_timeout' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'load_settings_page' ) );
 
 		register_activation_hook( SF_ABSPATH . '/socialflow.php', array( 'SocialFlow_Admin', 'install' ) );
 		register_uninstall_hook( SF_ABSPATH . '/socialflow.php', array( 'SocialFlow_Admin', 'uninstall' ) );
@@ -48,7 +45,7 @@ class SocialFlow_Admin {
 		$this->maybe_authorize();
 
 		// Register our settings in the global "whitelist_settings"
-		register_setting( 'socialflow', 'socialflow',  array( &$this, 'save_settings' ) );
+		register_setting( 'socialflow', 'socialflow',  array( $this, 'save_settings' ) );
 	}
 
 	/**
@@ -67,13 +64,11 @@ class SocialFlow_Admin {
 		require_once( SF_ABSPATH . '/includes/settings/accounts.php' );
 		require_once( SF_ABSPATH . '/includes/settings/messages.php' );
 		require_once( SF_ABSPATH . '/includes/settings/categories.php' );
-		require_once( SF_ABSPATH . '/includes/settings/debug.php' );
 
 		// Init menu classes
 		new SocialFlow_Admin_Settings_General;
 		new SocialFlow_Admin_Settings_Accounts;
 		new SocialFlow_Admin_Settings_Categories;
-		new SocialFlow_Admin_Settings_Debug;
 		//new SocialFlow_Admin_Settings_Messages;
 	}
 
@@ -99,19 +94,19 @@ class SocialFlow_Admin {
 	 */
 	function load_settings_page() {
 		global $pagenow;
-		if ( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php', 'edit.php' ) ) ) {
+		if ( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php', 'edit.php', 'options-general.php' ) ) ) {
 
 			// Enqueue neccessary scripts 
-			wp_enqueue_script( 'timepicker', plugins_url( '/socialflow/assets/js/jquery.timepicker.js' ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-datepicker'), true );
-			wp_enqueue_script( 'jquery.maxlength', plugins_url( '/socialflow/assets/js/jquery.maxlength-min.js' ), array( 'jquery'), '1.0.5', true );
-			wp_enqueue_script( 'socialflow-slider', plugins_url( '/socialflow/assets/js/thumb-slider.js' ), array( 'jquery'), '1.1.5', true );
+			wp_enqueue_script( 'timepicker', plugins_url( 'assets/js/jquery.timepicker.js', SF_FILE ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-datepicker'), true );
+			wp_enqueue_script( 'jquery.maxlength', plugins_url( 'assets/js/jquery.maxlength-min.js', SF_FILE ), array( 'jquery'), '1.0.5', true );
+			wp_enqueue_script( 'socialflow-slider', plugins_url( 'assets/js/thumb-slider.js', SF_FILE ), array( 'jquery'), '1.1.5', true );
 
-			wp_register_script( 'socialflow-admin', plugins_url( '/socialflow/assets/js/socialflow.js' ), array( 'jquery'), '2.0', true );
+			wp_register_script( 'socialflow-admin', plugins_url( 'assets/js/socialflow.js', SF_FILE ), array( 'jquery'), '2.0', true );
 			wp_enqueue_script( 'socialflow-admin' );
-			wp_enqueue_script( 'socialflow-categories', plugins_url( '/socialflow/assets/js/sf-categories.js' ), array( 'jquery'), '2.0', true );
+			wp_enqueue_script( 'socialflow-categories', plugins_url( 'assets/js/sf-categories.js', SF_FILE ), array( 'jquery'), '2.0', true );
 
 			// Enqeue styles
-			wp_enqueue_style( 'socialflow-admin', plugins_url( '/socialflow/assets/css/socialflow.css' ) );
+			wp_enqueue_style( 'socialflow-admin', plugins_url( 'assets/css/socialflow.css', SF_FILE ) );
 			wp_enqueue_style( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/smoothness/jquery-ui.css', false, '1.8.1', false);
 
 			// Thickbox scripts for compose now post action
@@ -168,7 +163,7 @@ class SocialFlow_Admin {
 			// Save update options
 			$socialflow->options->save();
 
-			wp_redirect( admin_url( 'options-general.php?page=socialflow' ) );
+			wp_redirect( add_query_arg( 'page', 'socialflow', admin_url( 'admin.php' ) ) );
 			exit;
 
 		} elseif ( isset($_GET['sf_unauthorize']) AND current_user_can( 'manage_options' ) ) {
@@ -176,7 +171,8 @@ class SocialFlow_Admin {
 			// Remove all options
 			delete_option('socialflow');
 
-			wp_redirect( admin_url( 'options-general.php?page=socialflow' ) );
+			wp_redirect( add_query_arg( 'page', 'socialflow', admin_url( 'admin.php' ) ) );
+			exit;
 		}
 	}
 
@@ -205,22 +201,6 @@ class SocialFlow_Admin {
 	}
 
 	/**
-	 * Increase http request timeout 
-	 * Callback for http_request_timeout filter
-	 *
-	 * @since 2.0
-	 * @param int - number of seconds before connection will be terminated
-	 */
-	function http_request_timeout( $time ) {
-
-		// Maybe some other plugin has already increased this parametr
-		if ( $time < 10 )
-			$time = 10;
-
-		return $time;
-	}
-
-	/**
 	 * Installs SocialFlow
 	 *
 	 * @since 2.0
@@ -244,15 +224,5 @@ class SocialFlow_Admin {
 
 		// Delete options
 		delete_option( 'socialflow' );
-	}
-
-	/**
-	 * PHP4 constructor
-	 *
-	 * @since 2.0
-	 * @access public
-	 */
-	function SocialFlow_Admin() {
-		$this->__construct();
 	}
 }

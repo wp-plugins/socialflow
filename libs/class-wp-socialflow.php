@@ -181,7 +181,7 @@ class WP_SocialFlow {
 		$args = wp_parse_args( $args, $defaults );
 
 		// Check if required fields are not empty
-		if ( !empty( $args['message'] ) && !empty( $service_user_id ) && !empty( $account_type ) ) {
+		if ( !empty( $service_user_id ) && !empty( $account_type ) ) {
 			$args[ 'service_user_id' ] = $service_user_id;
 			$args[ 'account_type' ] = $account_type;
 
@@ -190,7 +190,8 @@ class WP_SocialFlow {
 			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 				// Return posted message on success
 				$message = json_decode( wp_remote_retrieve_body( $response ), true );
-				if ( isset( $message['data']['content_item'] ) ) {
+
+				if ( $message && isset( $message['data']['content_item'] ) ) {
 					return $message['data']['content_item'];
 				} else {
 
@@ -223,6 +224,9 @@ class WP_SocialFlow {
 	 */
 	function parse_responce_errors( $response, &$error, $service_user_id ) {
 		$response = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( !$response )
+			return $error;
 
 		// add errors from response
 		if ( isset( $response['data']['errors'] ) AND is_array( $response['data']['errors'] ) )
@@ -284,7 +288,11 @@ class WP_SocialFlow {
 		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 			// Return posted message on success
 			$message = json_decode( wp_remote_retrieve_body( $response ), true );
-			return $message['data']['content_item'];
+
+			if ( $message )
+				return $message['data']['content_item'];
+			else
+				return new WP_Error( 'error', __( '<b>Error:</b> Error occurred, please try again .', 'socialflow' ) );
 		}
 		elseif ( is_wp_error( $response ) ) {
 			return $response;
@@ -304,7 +312,10 @@ class WP_SocialFlow {
 			return false;
 
 		$response = json_decode( wp_remote_retrieve_body( $response ), true );
-		
+
+		if ( ! $response )
+			return false;
+
 		$accounts = array();
 		foreach ( $response['data']['client_services'] as $account )
 			$accounts[ $account['client_service_id'] ] = $account;
@@ -312,14 +323,24 @@ class WP_SocialFlow {
 		return $accounts;
 	}
 
+	/**
+	 * Shorten links in passed message string
+	 * @param  string $message         Message that may contain links
+	 * @param  string $service_user_id User account that will be used to shorten links
+	 * @param  string $account_type    User account type
+	 * @return (bool|string)           NOTE: may return false on invalid pass parameters or invalid server response
+	 */
 	public function shorten_links( $message, $service_user_id, $account_type ) {
 		if ( !$message || !$service_user_id || !$account_type )
 			return false;
 
 		$response = $this->get( 'link/shorten_message', array( 'service_user_id' => $service_user_id, 'account_type' => $account_type, 'message' => stripslashes( $message ) ) );
 
-		if ( 200 == wp_remote_retrieve_response_code( $response ) )
-			return json_decode( wp_remote_retrieve_body( $response ) )->new_message;
+		if ( 200 != wp_remote_retrieve_response_code( $response ) )
+			return false;
+
+		// May return false on failure
+		return json_decode( wp_remote_retrieve_body( $response ) )->new_message;
 	}
 
 	public function get_account_links( $consumer_key = '' ) {
@@ -330,7 +351,7 @@ class WP_SocialFlow {
 
 		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 			$response = json_decode( wp_remote_retrieve_body( $response ) );
-			if ( 200 == $response->status )
+			if ( $response && 200 == $response->status )
 				return $response->data;
 		}
 
@@ -360,7 +381,7 @@ class WP_SocialFlow {
 
 		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 			$response = json_decode( wp_remote_retrieve_body( $response ) );
-			if ( 200 == $response->status )
+			if ( $response && 200 == $response->status )
 				return $response->data->content_queue;
 			else
 				$error->add( 'error', __( '<b>Error</b> occured.', 'socialflow' ) );
@@ -389,7 +410,7 @@ class WP_SocialFlow {
 
 		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 			$response = json_decode( wp_remote_retrieve_body( $response ) );
-			if ( 200 == $response->status )
+			if ( $response && 200 == $response->status )
 				return true;
 			else
 				$error->add( 'error', __( '<b>Error</b> occured.', 'socialflow' ) );

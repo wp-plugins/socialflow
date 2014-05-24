@@ -37,24 +37,24 @@ if ( !empty( $form_messages ) ) : ?>
 
 			?>
 				<?php if ( $first ) : ?>
-				<tr class="message <?php echo $alt ?>" >
+				<tr class="message <?php echo esc_attr( $alt ); ?>" >
 					<th class="massage-date" colspan="3" >
 						<?php echo mysql2date( 'd F, Y h:i', $date ); ?>
 					</th>
 				</tr>
 				<?php endif; ?>
-				<tr class="message <?php echo $alt ?>" data-id="<?php echo $message['content_item_id'] ?>" data-date="<?php echo $date ?>" data-account-id="<?php echo $user_id ?>" data-post_id="<?php echo $post_id; ?>" >
+				<tr class="message <?php echo esc_attr( $alt ); ?>" data-id="<?php echo esc_attr( $message['content_item_id'] ); ?>" data-date="<?php echo esc_attr( $date ); ?>" data-account-id="<?php echo esc_attr( $user_id ); ?>" data-post_id="<?php echo esc_attr( $post_id ); ?>" >
 					<td class="account column-account">
-						<?php echo $socialflow->accounts->get_display_name( $user_id, false ); ?>
+						<?php echo esc_attr( $socialflow->accounts->get_display_name( $user_id, false ) ); ?>
 					</td>
 					<td class="column-status">
 						<span class="status">
-							<?php echo $message['status']; ?>
-							<?php echo $queue_status; ?>
+							<?php echo esc_attr( $message['status'] ); ?>
+							<?php echo esc_attr( $queue_status ); ?>
 						</span>
 					</td>
 					<td class="refresh-column">
-						<img class="sf-message-loader" style="display:none;" src="<?php echo plugins_url( '/socialflow/assets/images/wpspin.gif' ) ?>" alt="">
+						<img class="sf-message-loader" style="display:none;" src="<?php echo plugins_url( 'assets/images/wpspin.gif', SF_FILE ) ?>" alt="">
 					</td>
 				</tr>
 
