@@ -28,28 +28,28 @@ class SocialFlow_Post {
 		if ( is_admin() ) {
 
 			// Add posts columns
-			add_action( 'admin_init', array( &$this, 'manage_posts_columns' ) );
+			add_action( 'admin_init', array( $this, 'manage_posts_columns' ) );
 
 			// Add meta box
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_box') );
 
 			// Ajax response with thumbnails
-			add_action( 'wp_ajax_sf_attachments', array( &$this, 'ajax_post_attachments' ) );
+			add_action( 'wp_ajax_sf_attachments', array( $this, 'ajax_post_attachments' ) );
 
 			// Output compose form on ajax call
-			add_action( 'wp_ajax_sf-composeform', array( &$this, 'ajax_compose_form' ) );
+			add_action( 'wp_ajax_sf-composeform', array( $this, 'ajax_compose_form' ) );
 
 			// Compose message to socialflow via ajax
-			add_action( 'wp_ajax_sf-compose', array( &$this, 'ajax_compose' ) );
+			add_action( 'wp_ajax_sf-compose', array( $this, 'ajax_compose' ) );
 
 			// Get single message via ajax request
-			add_action( 'wp_ajax_sf-get-message', array( &$this, 'sf_get_message' ) );
+			add_action( 'wp_ajax_sf-get-message', array( $this, 'sf_get_message' ) );
 
 			// Add new updated message
-			add_filter( 'post_updated_messages', array(&$this, 'post_updated_messages') );
+			add_filter( 'post_updated_messages', array($this, 'post_updated_messages') );
 
 			// Ouput js settings object if necessary
-			add_action( 'admin_footer', array( &$this, 'post_settings' ) );
+			add_action( 'admin_footer', array( $this, 'post_settings' ) );
 		}
 
 		// Add save action
@@ -69,8 +69,8 @@ class SocialFlow_Post {
 		// Loop through all active post_types and add custom columns
 		if ( $socialflow->options->get( 'post_type' ) ) {
 			foreach ( $socialflow->options->get( 'post_type' ) as $post_type ) {
-				add_filter( 'manage_'. $post_type .'_posts_columns' , array( &$this, 'add_column' ) );
-				add_action( 'manage_'. $post_type .'_posts_custom_column' , array( &$this, 'custom_column' ), 10, 2 );
+				add_filter( 'manage_'. $post_type .'_posts_columns' , array( $this, 'add_column' ) );
+				add_action( 'manage_'. $post_type .'_posts_custom_column' , array( $this, 'custom_column' ), 10, 2 );
 			}
 		}
 
@@ -113,7 +113,7 @@ class SocialFlow_Post {
 		$socialflow->render_view( 'meta-box', array(
 			'accounts' => $accounts,
 			'post' => $post,
-			'SocialFlow_Post' => &$this
+			'SocialFlow_Post' => $this
 		));
 	}
 
@@ -141,7 +141,7 @@ class SocialFlow_Post {
 		$view = $socialflow->render_view( 'form/post', array(
 			'grouped_accounts' => $grouped_accounts,
 			'post' => $post,
-			'SocialFlow_Post' => &$this,
+			'SocialFlow_Post' => $this,
 			'compose_now' => $compose_now,
 			'accounts' => $accounts
 		));
@@ -224,14 +224,18 @@ class SocialFlow_Post {
 		if ( 'revision' == $post->post_type )
 			return;
 
-		remove_action( 'transition_post_status', array( &$this, 'transition_post_status'), 1, 3 );
-
-		// Check if we are not in shceduled publishing scenario
-		if ( !( 'future' == $previous_status && 'publish' == $post_status ) ) {
+		// Form is not submited inside cron job for scheduled posts 
+		// thats why we are skipping some validations
+		if ( !( defined( 'DOING_CRON' ) && DOING_CRON && 'future' == $previous_status && 'publish' == $post_status ) ) {
 
 			// Verify nonce
 			if ( ! isset( $_POST['socialflow_nonce'] ) || ! wp_verify_nonce( $_POST['socialflow_nonce'], SF_ABSPATH ) )
 				return;
+
+			// Prevent multiple form submission
+			if ( get_post_meta( $post->ID, 'socialflow_nonce', true ) !== $_POST['socialflow_nonce'] )
+				return;
+			delete_post_meta( $post->ID, 'socialflow_nonce' );
 
 			// Check if user has enough capabilities
 			if ( ! current_user_can( 'edit_post', $post->ID ) )
@@ -239,7 +243,7 @@ class SocialFlow_Post {
 		}
 
 		// Prevent action duplication
-		remove_action( 'transition_post_status', array( &$this, 'transition_post_status'), 1, 3 );
+		remove_action( 'transition_post_status', array( $this, 'transition_post_status'), 1, 3 );
 
 		$post_id = $post->ID;
 
@@ -291,28 +295,28 @@ class SocialFlow_Post {
 		// Collect and save all socialflow messages
 		if ( isset( $data['message'] ) ) {
 			foreach ( $data['message'] as $key => $value ) {
-				update_post_meta( $post_id, 'sf_message_' . $key, trim( esc_html( $value ) ) );
+				update_post_meta( $post_id, 'sf_message_' . $key, trim( sanitize_text_field( $value ) ) );
 			}
 		}
 
 		// Collect and save all socialflow titles
 		if ( isset( $data['title'] ) ) {
 			foreach ( $data['title'] as $key => $value ) {
-				update_post_meta( $post_id, 'sf_title_' . $key, trim( esc_attr( $value ) ) );
+				update_post_meta( $post_id, 'sf_title_' . $key, trim( sanitize_text_field( $value ) ) );
 			}
 		}
 
 		// Collect and save all socialflow descriptions
 		if ( isset( $data['description'] ) ) {
 			foreach ( $data['description'] as $key => $value ) {
-				update_post_meta( $post_id, 'sf_description_' . $key, trim( esc_attr( $value ) ) );
+				update_post_meta( $post_id, 'sf_description_' . $key, trim( sanitize_text_field( $value ) ) );
 			}
 		}
 
 		// Collect and save all images
 		if ( isset( $data['image'] ) ) {
 			foreach ( $data['image'] as $key => $value ) {
-				update_post_meta( $post_id, 'sf_image_' . $key, trim( esc_attr( $value ) ) );
+				update_post_meta( $post_id, 'sf_image_' . $key, trim( sanitize_text_field( $value ) ) );
 			}
 		}
 
@@ -350,14 +354,14 @@ class SocialFlow_Post {
 
 		$data = isset( $data[ $account['client_service_id'] ] ) ? $data[ $account['client_service_id'] ] : array();
 
-		return array(
-			'publish_option'      => isset( $data['publish_option'] ) ? esc_attr( $data['publish_option'] ) : $socialflow->options->get( 'publish_option' ),
+		return array_map( 'sanitize_text_field', array(
+			'publish_option'      => isset( $data['publish_option'] ) ? sanitize_text_field( $data['publish_option'] ) : $socialflow->options->get( 'publish_option' ),
 			'must_send'           => isset( $data['must_send'] ) ? absint( $data['must_send'] ) : absint( $socialflow->options->get( 'must_send' ) ),
-			'optimize_period'     => isset( $data['optimize_period'] ) ? esc_attr( $data['optimize_period'] ) : $socialflow->options->get( 'optimize_period' ),
-			'optimize_start_date' => isset( $data['optimize_start_date'] ) ? esc_attr( $data['optimize_start_date'] ) : $socialflow->options->get( 'optimize_start_date' ),
-			'optimize_end_date'   => isset( $data['optimize_end_date'] ) ? esc_attr( $data['optimize_end_date'] ) : $socialflow->options->get( 'optimize_end_date' ),
-			'scheduled_date'      => isset( $data['scheduled_date'] ) ? esc_attr( $data['scheduled_date'] ) : ''
-		);
+			'optimize_period'     => isset( $data['optimize_period'] ) ? sanitize_text_field( $data['optimize_period'] ) : $socialflow->options->get( 'optimize_period' ),
+			'optimize_start_date' => isset( $data['optimize_start_date'] ) ? sanitize_text_field( $data['optimize_start_date'] ) : $socialflow->options->get( 'optimize_start_date' ),
+			'optimize_end_date'   => isset( $data['optimize_end_date'] ) ? sanitize_text_field( $data['optimize_end_date'] ) : $socialflow->options->get( 'optimize_end_date' ),
+			'scheduled_date'      => isset( $data['scheduled_date'] ) ? sanitize_text_field( $data['scheduled_date'] ) : ''
+		));
 	}
 
 	/**
@@ -420,20 +424,19 @@ class SocialFlow_Post {
 			$advanced[ $account_id ]['message'] = ( 'twitter' == $type AND !empty( $message ) ) ? $message . ' ' . get_permalink( $post_id ) : $message;
 
 			// Retrieve some specific account data depending on account type
-			if ( 'facebook' == $type ) {
-				$advanced[ $account_id ]['facebook_message'] = array();
-				// Attach post link
-				$advanced[ $account_id ]['facebook_message']['link'] = get_permalink( $post_id );
-				// Additional title
-				if ( get_post_meta( $post_id, 'sf_title_facebook', true ) )
-					$advanced[ $account_id ]['facebook_message']['name'] = esc_html( get_post_meta( $post_id, 'sf_title_facebook', true ) );
-				// Message Description
-				if ( get_post_meta( $post_id, 'sf_description_facebook', true ) )
-					$advanced[ $account_id ]['facebook_message']['description'] = wp_trim_words(esc_html( get_post_meta( $post_id, 'sf_description_facebook', true ) ), 150, ' ...' );
-				// Message thumbnail
-				if ( get_post_meta( $post_id, 'sf_image_facebook', true ) ) {
-					$advanced[ $account_id ]['facebook_message']['picture'] = get_post_meta( $post_id, 'sf_image_facebook', true );
+			if ( 'facebook' == $type || 'google_plus' == $type ) {
+				$advanced[ $account_id ]['content_attributes'] = array();
+				$advanced[ $account_id ]['content_attributes']['link'] = get_permalink( $post_id );
+
+				if ( 'facebook' == $type ) {
+					if ( get_post_meta( $post_id, 'sf_title_facebook', true ) )
+						$advanced[ $account_id ]['content_attributes']['name'] = esc_html( get_post_meta( $post_id, 'sf_title_facebook', true ) );
+					if ( get_post_meta( $post_id, 'sf_description_facebook', true ) )
+						$advanced[ $account_id ]['content_attributes']['description'] = wp_trim_words(esc_html( get_post_meta( $post_id, 'sf_description_facebook', true ) ), 150, ' ...' );
+					if ( get_post_meta( $post_id, 'sf_image_facebook', true ) )
+						$advanced[ $account_id ]['content_attributes']['picture'] = get_post_meta( $post_id, 'sf_image_facebook', true );
 				}
+				
 			}
 
 			// add current user display name and email to send queue
@@ -453,18 +456,17 @@ class SocialFlow_Post {
 			return $socialflow->save_errors( $post_id, $result );
 		}
 		else {
-
 			$success = get_post_meta( $post_id, 'sf_success', true ) ? get_post_meta( $post_id, 'sf_success', true ) : array();
 
 			// create new arry item for current message
-			$success[ current_time( 'mysql' ) ] = array( );
+			$success[ current_time( 'mysql' ) ] = array();
 
 			// $result is array of messages, so we need to create success array to hold account success messages
 			foreach ( $result as $message ) {
 				$success[ current_time( 'mysql' ) ][ $message['client_service_id'] ] = array(
-					'status' => $message['status'],
-					'content_item_id' => $message['content_item_id'],
-					'is_published' => $message['is_published'] 
+					'status' => sanitize_text_field( $message['status'] ),
+					'content_item_id' => sanitize_text_field( $message['content_item_id'] ),
+					'is_published' => sanitize_text_field( $message['is_published'] ) 
 				);
 			}
 
@@ -504,42 +506,18 @@ class SocialFlow_Post {
 	 * @param string - current post content
 	 */
 	function post_attachments( $post_id, $post_content = '' ) {
+		if ( empty( $post_content ) )
+			return;
 
-		// array for content images
-		$images = $image_ids = array();
-		if ( !empty( $post_content ) ) {
-			
-			$text = stripslashes( $post_content );
+		$post_content = stripslashes( $post_content );
+		$regex = '/<\s*img [^\>]*src\s*=\s*(["\'])(.*?)\1/im';
 
-			// Find all images in post content
-			$imgsrc_regex = '/<img[^>]+>/';
-			if( preg_match_all( $imgsrc_regex, $text, $arr_match_array ) ) {
-				// Retrieve additional params for each found image
-				foreach ( $arr_match_array[0] as $key => $img ) {
+		if ( !preg_match_all( $regex, $post_content, $images ) )
+			return;
 
-					// Retrieve image src continue if none was found
-					if( preg_match( '/src=(\'|")[^(\'|")]+/',$img,$img_url ) )
-						$images[ $key ]['src'] = preg_replace('/src=(\'|")/','',$img_url[0]);
-					else
-						continue;
-
-					if(preg_match("/wp-image-[0-9]*/",$img,$img_id))
-						$image_ids[] = str_replace('wp-image-','',$img_id[0]);
-
-					if(preg_match('/title="[^"]+/',$img,$img_title))
-						$images[$key]['title'] = preg_replace('/title=(\'|")/','',$img_title[0]);
-				}
-
-				if ( !empty( $images ) ) {
-					foreach ( $images as $image ) {
-						?>
-							<div class="slide"><img src="<?php echo $image['src'] ?>" alt="<?php echo $image['title'] ?>" /></div>
-						<?php
-					}
-				}
-			}
-		} // not empty content
-
+		foreach ( $images[2] as $image ) {
+			?><div class="slide"><img src="<?php echo esc_url( $image ); ?>" /></div><?php
+		}
 	}
 
 	/**
@@ -556,7 +534,7 @@ class SocialFlow_Post {
 
 		$socialflow->render_view( 'form/ajax', array(
 			'post' => $post,
-			'SocialFlow_Post' => &$this
+			'SocialFlow_Post' => $this
 		));
 		exit;
 	}
@@ -602,11 +580,11 @@ class SocialFlow_Post {
 			$ajax_messages = '<p class="success">' . __( 'Message was successfully sent. View statistics block for more information.', 'socialflow' ) . '</p>';
 		}
 
-		exit( json_encode( array(
+		wp_send_json( array(
 			'messages' => $messages,
 			'status' => $status,
 			'ajax_messages' => $ajax_messages
-		)));
+		));
 	}
 
 	/**
@@ -760,15 +738,5 @@ class SocialFlow_Post {
 
 		$this->js_settings['postType'] = $socialflow->options->get( 'post_type' );
 		wp_localize_script( 'socialflow-admin', 'optionsSF', $this->js_settings );
-	}
-
-	/**
-	 * PHP4 constructor
-	 *
-	 * @since 2.0
-	 * @access public
-	 */
-	function SocialFlow_Post() {
-		$this->__construct();
 	}
 }

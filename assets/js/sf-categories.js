@@ -70,6 +70,7 @@ jQuery(function($){
 			sendData += '&action=' + action
 			sendData += '&method=connect'
 			
+			sendData += '&security=' + sf_categories.security
 			
 			action_term_account( sendData, success_callback )
 		}
@@ -92,10 +93,11 @@ jQuery(function($){
 				taxonomy:   taxonomy || term.attr( 'data-taxonomy' ),
 				account_id: account.attr( 'data-account_id' ),
 				action:     action,
-				method:     'disconnect'
+				method:     'disconnect',
+				security:   sf_categories.security
 			}
 
-			// Succeffull ajax callback
+			// Succefull ajax callback
 			var success_callback = function( data ) {
 				if ( 1 == data.status ) {
 					account.remove()
@@ -202,4 +204,4 @@ jQuery(function($){
 		
 	}) // Post edit page
 
-})// jQuery shell function
+});

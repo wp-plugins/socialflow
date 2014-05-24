@@ -2,8 +2,8 @@
 Contributors: SocialFlow, Dizzain
 Tags: SocialFlow, Facebook, Twitter, Social, Social Optimization, Sharing, Retweets, Social Graph
 Requires at least: 3.2
-Tested up to: 3.6
-Stable tag: 2.1
+Tested up to: 3.9.1
+Stable tag: 2.3
 
 SocialFlow's WordPress plugin enhances your WordPress experience by allowing you to utilize the power of SocialFlow from right inside WordPress.
 
@@ -17,6 +17,7 @@ Each time you publish a new item, use SocialFlow's powerful technology to ensure
 Craft custom headlines and updates for the social web from your WordPress dashboard or an individual post.
 
 Experience seamless social publishing that gets maximum results with WordPress and SocialFlow.
+
 
 ==Installation==
 1. Get the SocialFlow plugin at Wordpress.org
@@ -35,6 +36,25 @@ Please find support and FAQ information here:
 http://support.socialflow.com/entries/20573086-wordpress-plugin-faq-help
 
 == Changelog == 
+
+= 2.3 =
+* Fix autopopulating when switching between visual editor and html
+* Optimize for anytime by defatult after plugin activate
+* Fix redirect urls on plugin activation/deactivation
+
+= 2.2.2 =
+* Add semicolon to the end of some Javascript files, so now they can be concatenated together
+* Fix tiny php warning
+
+= 2.2.1 =
+* Fix multiple message submission when sending multiple post update/publish requests
+* Fix autopopulate for non empty message fields
+
+= 2.2 =
+* Support Google Plus publishing accounts
+
+= 2.1.1 =
+* Fix: Send message to SocialFlow when scheduled post will be published.
 
 = 2.1 =
 * Plugin update handler class added.

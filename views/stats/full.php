@@ -29,7 +29,7 @@ $i = 0;
 			<?php _e( 'Status', 'socialflow' ) ?>
 		</th>
 		<th scope="col" width="20px">
-			<img title="<?php _e( 'Refresh Message Stats', 'socialflow' ); ?>" alt="<?php _e( 'Refresh', 'socialflow' ); ?>" class="sf-js-update-multiple-messages" src="<?php echo plugins_url( '/socialflow/assets/images/reload.png' ) ?>" >
+			<img title="<?php _e( 'Refresh Message Stats', 'socialflow' ); ?>" alt="<?php _e( 'Refresh', 'socialflow' ); ?>" class="sf-js-update-multiple-messages" src="<?php echo plugins_url( 'assets/images/reload.png', SF_FILE ) ?>" >
 		</th>
 	</tr></thead>
 
@@ -49,21 +49,21 @@ $i = 0;
 					$queue_status = '';
 				}
 			?>
-				<tr class="message <?php echo $alt ?>" data-id="<?php echo $message['content_item_id'] ?>" data-date="<?php echo $date ?>" data-account-id="<?php echo $user_id ?>" data-post_id="<?php echo $post_id; ?>" >
+				<tr class="message <?php echo esc_attr( $alt ); ?>" data-id="<?php echo esc_attr( $message['content_item_id'] ); ?>" data-date="<?php echo esc_attr( $date ); ?>" data-account-id="<?php echo esc_attr( $user_id ); ?>" data-post_id="<?php echo esc_attr( $post_id ); ?>" >
 					<?php if ( $first ) : ?>
 					<td class="username column-username" rowspan="<?php echo count( $success ); ?>"  >
 						<?php echo mysql2date( 'd F, Y h:i', $date ); ?>
 					</td>
 					<?php endif; ?>
 					<td class="account column-account">
-						<?php echo $socialflow->accounts->get_display_name( $user_id ); ?>
+						<?php echo esc_attr( $socialflow->accounts->get_display_name( $user_id ) ); ?>
 					</td>
 					<td class="status column-status" >
-						<?php echo $message['status']; ?>
-						<?php echo $queue_status; ?>
+						<?php echo wp_kses_post( $message['status'] ); ?>
+						<?php echo wp_kses_post( $queue_status ); ?>
 					</td>
 					<td>
-						<img class="sf-message-loader" style="display:none;" src="<?php echo plugins_url( '/socialflow/assets/images/wpspin.gif' ) ?>" alt="">
+						<img class="sf-message-loader" style="display:none;" src="<?php echo plugins_url( 'assets/images/wpspin.gif', SF_FILE ) ?>" alt="">
 					</td>
 				</tr>
 

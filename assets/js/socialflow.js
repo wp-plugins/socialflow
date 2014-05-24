@@ -36,28 +36,32 @@ jQuery(function($){
 
 			// find all autofill fields and fill them automatically
 			$( '#socialflow-compose .autofill' ).each( function(){
-				var input = $(this)
-				if ( '' == input.val() ) {
-					var text = ''
+				var input = $(this),
+					text = '',
+					contentWrap = document.getElementById('wp-content-wrap');
 
-					// Retrieve content either from tinyMCE or from passed selector
-					if ( 'editor' == input.attr( 'data-content-selector' ) ) {
-						text = (is_ajax) ? sf_post[ input.attr( 'data-content-selector' ) ] : tinyMCE.activeEditor.getContent()
+				// Retrieve content either from tinyMCE or from passed selector
+				if (is_ajax) {
+					text = sf_post[ input.attr( 'data-content-selector' ) ];
+					console.log(sf_post);
+				} else {
+					if ( '#content' == input.attr( 'data-content-selector' ) && tinyMCE.activeEditor && contentWrap.className.indexOf('tmce-active') > -1 ) {
+						text = tinyMCE.activeEditor.getContent();
 					} else {
-						text = (is_ajax) ? sf_post[ input.attr( 'data-content-selector' ) ] : $( input.attr( 'data-content-selector' ) ).val()
+						text = $( input.attr( 'data-content-selector' ) ).val();
 					}
-
-					// Remove html tags, shortcodes, html special chars and whitespaces from the beginning and end of text
-					text = text.replace(/<(?:.|\n)*?>/gm, '').replace( /\[(?:.|\n)*?\]/gm, '' )
-					text = text.replace( '&nbsp;', '' )
-					text = $.trim( text )
-
-					input.val( text ).trigger( 'change' )
 				}
-			})
+
+				// Remove html tags, shortcodes, html special chars and whitespaces from the beginning and end of text
+				text = text.replace(/<(?:.|\n)*?>/gm, '').replace( /\[(?:.|\n)*?\]/gm, '' )
+				text = text.replace( '&nbsp;', '' )
+				text = $.trim( text )
+
+				input.val( text ).trigger( 'change' );
+			});
 
 			// update attachements
-			$('#sf-update-attachments').trigger( 'click' )
+			$('#sf-update-attachments').trigger( 'click' );
 		})
 
 		// Compose Tabs
@@ -182,14 +186,20 @@ jQuery(function($){
 				)
 			}
 		}
-		init_slides()
+		init_slides();
 
 		// update image attachments list via ajax
 		$('#sf-update-attachments').click(function(e){
 			e.preventDefault()
 
 			var id = $('#sf-post-id').val(),
-				content = is_ajax ? sf_post['editor'] : tinyMCE.activeEditor.getContent()
+				content = '',
+				contentWrap = document.getElementById('wp-content-wrap');
+
+			if (is_ajax)
+				content = sf_post['editor'];
+			else
+				content = (tinyMCE.activeEditor !== null && contentWrap.className.indexOf('tmce-active') > -1) ? tinyMCE.activeEditor.getContent() : document.getElementById('content').value;
 
 			// Send ajax request for attachments
 			$.ajax({
@@ -344,7 +354,7 @@ jQuery(function($){
 		})
 	}
 
-	if ( pagenow.indexOf('socialflow') ) {
+	if ( pagenow.indexOf('socialflow') > -1 ) {
 
 		// Activate timepicker
 		$('.datetimepicker').each(function(){
@@ -386,4 +396,4 @@ jQuery(function($){
 		});
 	}
 
-})// jQuery shell function
+});

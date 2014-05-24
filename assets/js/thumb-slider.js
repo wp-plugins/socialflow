@@ -43,4 +43,4 @@
 			visible_item = nr
 		}
 	}
-})(jQuery)
+})(jQuery);

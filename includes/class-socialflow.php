@@ -54,7 +54,9 @@ class SocialFlow extends SocialFlow_Methods {
 		'initial_nag' => 1,
 		'accounts' => array(),
 		'shorten_links' => 1,
-		'post_type' => array( 'post' )
+		'post_type' => array( 'post' ),
+		'publish_option' => 'optimize',
+		'optimize_period' => 'anytime'
 	);
 
 	/**
@@ -69,7 +71,7 @@ class SocialFlow extends SocialFlow_Methods {
 		$this->init_options();
 
 		// Load sub classes
-		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded' ) );
+		add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
 	}
 
 	/**
@@ -110,15 +112,5 @@ class SocialFlow extends SocialFlow_Methods {
 	 */
 	function init_options() {
 		$this->options = new SF_Plugin_Options( 'socialflow', apply_filters( 'sf_init_options', $this->default_options ) );
-	}
-
-	/**
-	 * PHP4 style constructor
-	 *
-	 * @since 2.0
-	 * @access public
-	 */
-	function SocialFlow() {
-		$this->__construct();
 	}
 }

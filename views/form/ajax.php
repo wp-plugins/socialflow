@@ -15,16 +15,16 @@
 	<?php $SocialFlow_Post->meta_box( $post ); ?>
 
 	<input name="action" type="hidden" value="sf-compose" >
-	<input type="hidden" name="post_id" value="<?php echo $post->ID ?>" />
-	
-	<p><input type="submit" name="submit" class="button-primary" value="<?php esc_attr_e( 'Send Message', 'socialflow' ) ?>" /> <img class="sf-loader" style="display:none;" src="<?php echo plugins_url( '/socialflow/assets/images/wpspin.gif' ) ?>" alt=""></p>
+	<input type="hidden" name="post_id" value="<?php echo esc_attr( $post->ID ); ?>" />
+
+	<p><input type="submit" name="submit" class="button-primary" value="<?php esc_attr_e( 'Send Message', 'socialflow' ) ?>" /> <img class="sf-loader" style="display:none;" src="<?php echo plugins_url( 'assets/images/wpspin.gif', SF_FILE ) ?>" alt=""></p>
 	<div id="ajax-messages"></div>
 </form>
 <script type="text/javascript">
 
 	var sf_post = {
 		'#title': '<?php echo addslashes( $post->post_title ) ?>',
-		'editor': '<?php echo trim( str_replace( array( "\r", "\n" ), "", addslashes( $post->post_content ) ) ); ?>'
+		'#content': '<?php echo trim( str_replace( array( "\r", "\n" ), "", addslashes( $post->post_content ) ) ); ?>'
 	};
 
 	jQuery.init_compose_form( true )

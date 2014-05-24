@@ -122,18 +122,9 @@ class SF_Plugin_Options {
 			unset( $this->options[$option] );
 	}
 
-	/**
-	 * PHP4 constructor
-	 *
-	 * @since 0.1
-	 * @access public
-	 */
-	function SF_Plugin_Options( $db_key, $options = '' ) {
-		$this->construct( $db_key, $options );
-	}
 
 	/**
-	 * PHP4 constructor
+	 * Load Options for requested db key
 	 *
 	 * @since 0.2
 	 * @access public

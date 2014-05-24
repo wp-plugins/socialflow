@@ -58,12 +58,15 @@ class SocialFlow_Accounts {
 		}
 
 		// Check if array of account ids was passed
-		if ( $intersect = array_intersect( array_keys( $accounts ), array_values( $query ) ) ) {
-			foreach ( $accounts as $key => $value ) {
-				if ( !in_array( $key, $intersect ) )
-					unset( $accounts[ $key ] );
+		if ( isset( $query[0] ) && is_int( $query[0] ) ) {
+			if ( $intersect = array_intersect( array_keys( $accounts ), array_values( $query ) ) ) {
+				foreach ( $accounts as $key => $value ) {
+					if ( !in_array( $key, $intersect ) )
+						unset( $accounts[ $key ] );
+				}
+				return $accounts;
 			}
-			return $accounts;
+			return false;
 		}
 
 		// loop through query attributes and unset not matching accounts
@@ -75,6 +78,7 @@ class SocialFlow_Accounts {
 
 				// break loop if query doesn't match
 				if ( 
+					!isset( $check[ 'key' ] ) OR !is_string( $check[ 'key' ] ) OR
 					!isset( $account[ $check[ 'key' ] ] ) OR 
 					( !is_array( $check[ 'value' ] ) AND !is_array( $account[ $check[ 'key' ] ] ) AND $account[ $check[ 'key' ] ] != $check[ 'value' ] )  OR
 					( is_array( $check[ 'value' ] ) AND !is_array( $account[ $check[ 'key' ] ] ) AND !in_array( $account[ $check[ 'key' ] ], $check[ 'value' ] ) )
@@ -175,6 +179,9 @@ class SocialFlow_Accounts {
 				$name = $account['screen_name'];
 				$prefix = __('Twitter', 'socialflow') . ' @';
 				break;
+			default:
+				$name = $account['name'];
+				break;
 		}
 
 		return $add_prefix ? $prefix . $name : $name;
@@ -205,6 +212,25 @@ class SocialFlow_Accounts {
 		return $accounts;
 	}
 
+
+	/**
+	 * User Friendly type title
+	 * @param  string $type Account type
+	 * @return string       Account type title
+	 */
+	public function get_type_title( $type ) {
+		$title = '';
+
+		if ( 'twitter' == $type )
+			$title = 'Twitter';
+		elseif ( 'facebook' == $type )
+			$title = 'Facebook';
+		elseif ( 'google_plus' == $type )
+			$title = 'Google Plus';
+
+		return $title;
+	}
+
 	/**
 	 * Get global account type
 	 * @param mixed account
@@ -220,6 +246,8 @@ class SocialFlow_Accounts {
 			$type = 'twitter';
 		elseif ( strpos( $type, 'facebook' ) !== false )
 			$type = 'facebook';
+		elseif ( strpos( $type, 'google_plus' ) !== false )
+			$type = 'google_plus';
 
 		return $type;
 	}
@@ -297,8 +325,11 @@ class SocialFlow_Accounts {
 
 		foreach ( $data as $account_id => $values ) {
 
+			$account = self::get( $account_id );
+			$account_type = self::get_global_type( $account );
+
 			// check for required fields
-			if ( empty( $values['message'] ) ) {
+			if ( empty( $values['message'] ) && $account_type !== 'google_plus' ) {
 				$errors[] = new WP_Error( 'empty_message:', __( '<b>Error:</b> Message field is required for: <i>%s</i>.' ), array( $account_id ) );
 			}
 
@@ -357,16 +388,16 @@ class SocialFlow_Accounts {
 			}
 
 			// check for special fields
-			if ( isset( $values['facebook_message'] ) ) {
+			if ( isset( $values['content_attributes'] ) ) {
 
-				if ( isset( $values['facebook_message']['name'] ) ) {
-					$values['facebook_message']['name'] = self::valid_text( $values['facebook_message']['name'], 'name', $total_len );
+				if ( isset( $values['content_attributes']['name'] ) ) {
+					$values['content_attributes']['name'] = self::valid_text( $values['content_attributes']['name'], 'name', $total_len );
 				}
-				if ( isset( $values['facebook_message']['description'] ) ) {
-					$values['facebook_message']['description'] = self::valid_text( $values['facebook_message']['description'], 'description', $total_len );
+				if ( isset( $values['content_attributes']['description'] ) ) {
+					$values['content_attributes']['description'] = self::valid_text( $values['content_attributes']['description'], 'description', $total_len );
 				}
 
-				$valid_data[ $account_id ]['facebook_message'] = json_encode( $values['facebook_message'] );
+				$valid_data[ $account_id ]['content_attributes'] = json_encode( $values['content_attributes'] );
 			}
 
 			// add additianal fields
@@ -409,15 +440,5 @@ class SocialFlow_Accounts {
 		$total_len += strlen( $text );
 
 		return $text;
-	}
-
-	/**
-	 * PHP4 constructor
-	 *
-	 * @since 2.0
-	 * @access public
-	 */
-	function SocialFlow_Accounts() {
-		$this->__construct();
 	}
 }
