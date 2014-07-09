@@ -25,6 +25,13 @@ class SocialFlow_Accounts {
 	var $last;
 
 	/**
+	 * Default order for available account types
+	 * 
+	 * @var array
+	 */
+	static $type_order = array( 'twitter', 'facebook', 'google_plus', 'linkedin' );
+
+	/**
 	 * PHP5 Constructor
 	 */
 	function __construct(){}
@@ -179,6 +186,14 @@ class SocialFlow_Accounts {
 				$name = $account['screen_name'];
 				$prefix = __('Twitter', 'socialflow') . ' @';
 				break;
+			case 'google_plus':
+				$name = $account['name'];
+				$prefix = __('Google+ ', 'socialflow');
+				break;
+			case 'linkedin':
+				$name = $account['name'];
+				$prefix = __('LinkedIn ', 'socialflow');
+				break;
 			default:
 				$name = $account['name'];
 				break;
@@ -196,20 +211,25 @@ class SocialFlow_Accounts {
 	 * @param array accounts to group
 	 * @return array grouped accounts
 	 */
-	function group_by( $type = 'global_type', $accounts = array() ) {
-		if ( !empty( $accounts ) ) {
-			$new = array();
-			foreach ($accounts as $key => $account) {
-				// Define
-				$type = self::get_global_type($account);
-				if (isset($new[$type]))
-					$new[$type][] = $account;
-				else
-					$new[$type] = array($account);
-			}
-			$accounts = $new;
+	function group_by( $type = 'global_type', $accounts = array(), $order = false ) {
+		if ( empty( $accounts ) )
+			return $accounts;
+
+		$new = array();
+		foreach ($accounts as $key => $account) {
+			// Define
+			$type = self::get_global_type($account);
+			if (isset($new[$type]))
+				$new[$type][] = $account;
+			else
+				$new[$type] = array($account);
 		}
-		return $accounts;
+		$accounts = $new;
+
+		if ( false == $order )
+			return $accounts;
+
+		return array_replace( array_flip( self::$type_order ), $accounts );
 	}
 
 
@@ -218,17 +238,20 @@ class SocialFlow_Accounts {
 	 * @param  string $type Account type
 	 * @return string       Account type title
 	 */
-	public function get_type_title( $type ) {
-		$title = '';
+	static function get_type_title( $type ) {
+		switch ( $type ) {
+			case 'google_plus':
+				return 'Google+';
+				break;
 
-		if ( 'twitter' == $type )
-			$title = 'Twitter';
-		elseif ( 'facebook' == $type )
-			$title = 'Facebook';
-		elseif ( 'google_plus' == $type )
-			$title = 'Google Plus';
+			case 'linkedin':
+				return 'LinkedIn';
+				break;
 
-		return $title;
+			default:
+				return ucfirst( $type );
+				break;
+		}
 	}
 
 	/**
@@ -248,6 +271,8 @@ class SocialFlow_Accounts {
 			$type = 'facebook';
 		elseif ( strpos( $type, 'google_plus' ) !== false )
 			$type = 'google_plus';
+		elseif ( strpos( $type, 'linked_in' ) !== false )
+			$type = 'linkedin';
 
 		return $type;
 	}
