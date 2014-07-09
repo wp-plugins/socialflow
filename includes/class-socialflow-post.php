@@ -130,7 +130,7 @@ class SocialFlow_Post {
 		global $socialflow;
 
 		// get active accounts and group by type
-		$grouped_accounts = $socialflow->accounts->group_by( 'global_type', $accounts ); 
+		$grouped_accounts = $socialflow->accounts->group_by( 'global_type', $accounts, true ); 
 
 		// Get compose now value, if post was not publish yet get value from options
 		$compose_now = ( 'auto-draft' == $post->post_status ) ? $socialflow->options->get( 'compose_now' ) : get_post_meta( $post->ID, 'sf_compose_now', true );
@@ -424,19 +424,26 @@ class SocialFlow_Post {
 			$advanced[ $account_id ]['message'] = ( 'twitter' == $type AND !empty( $message ) ) ? $message . ' ' . get_permalink( $post_id ) : $message;
 
 			// Retrieve some specific account data depending on account type
-			if ( 'facebook' == $type || 'google_plus' == $type ) {
+			if ( in_array( $type, array( 'facebook', 'google_plus', 'linkedin' ) ) ) {
 				$advanced[ $account_id ]['content_attributes'] = array();
-				$advanced[ $account_id ]['content_attributes']['link'] = get_permalink( $post_id );
+				$advanced[ $account_id ]['content_attributes']['link'] = get_permalink( $post_id );				
+			}
 
-				if ( 'facebook' == $type ) {
-					if ( get_post_meta( $post_id, 'sf_title_facebook', true ) )
-						$advanced[ $account_id ]['content_attributes']['name'] = esc_html( get_post_meta( $post_id, 'sf_title_facebook', true ) );
-					if ( get_post_meta( $post_id, 'sf_description_facebook', true ) )
-						$advanced[ $account_id ]['content_attributes']['description'] = wp_trim_words(esc_html( get_post_meta( $post_id, 'sf_description_facebook', true ) ), 150, ' ...' );
-					if ( get_post_meta( $post_id, 'sf_image_facebook', true ) )
-						$advanced[ $account_id ]['content_attributes']['picture'] = get_post_meta( $post_id, 'sf_image_facebook', true );
-				}
-				
+			if ( 'facebook' == $type ) {
+				if ( get_post_meta( $post_id, 'sf_title_facebook', true ) )
+					$advanced[ $account_id ]['content_attributes']['name'] = esc_html( get_post_meta( $post_id, 'sf_title_facebook', true ) );
+				if ( get_post_meta( $post_id, 'sf_description_facebook', true ) )
+					$advanced[ $account_id ]['content_attributes']['description'] = wp_trim_words(esc_html( get_post_meta( $post_id, 'sf_description_facebook', true ) ), 150, ' ...' );
+				if ( get_post_meta( $post_id, 'sf_image_facebook', true ) )
+					$advanced[ $account_id ]['content_attributes']['picture'] = get_post_meta( $post_id, 'sf_image_facebook', true );
+			}
+
+			if ( 'google_plus' == $type && ( $image = get_post_meta( $post_id, 'sf_image_google_plus', true ) ) ) {
+				$advanced[ $account_id ]['content_attributes']['picture'] = $image;
+			}
+
+			if ( 'linkedin' == $type && ( $image = get_post_meta( $post_id, 'sf_image_linkedin', true ) ) ) {
+				$advanced[ $account_id ]['content_attributes']['picture'] = $image;
 			}
 
 			// add current user display name and email to send queue

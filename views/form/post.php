@@ -53,26 +53,45 @@ foreach ( $grouped_accounts as $group => $group_accounts ) :
 
 		<textarea data-content-selector="#title" class="autofill widefat socialflow-message-<?php echo esc_attr( $group ); ?>" id="sf_message_<?php echo esc_attr( $group ); ?>" name="socialflow[message][<?php echo esc_attr( $group ); ?>]" cols="30" rows="5" placeholder="<?php _e('Message', 'socialflow') ?>" ><?php echo esc_html( $message ); ?></textarea>
 
-		<?php if ( 'facebook' == $group ) :
-	    	$title       = esc_attr( get_post_meta( $post->ID, 'sf_title_'.$group, true ) );
-			$description = esc_html( get_post_meta( $post->ID, 'sf_description_'.$group, true ) );
-			$image       = esc_attr( get_post_meta( $post->ID, 'sf_image_'.$group, true ) );
+		<?php if ( 'google_plus' == $group ) : ?>
+			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for G+ underneath', 'socialflow' ); ?></span>
+		<?php elseif ( 'linkedin' == $group ) : ?>
+			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for LinkedIn underneath', 'socialflow' ); ?></span>
+		<?php endif; ?>
+
+		<?php if ( in_array( $group, array( 'google_plus', 'facebook', 'linkedin' ) ) ) :
+
+			if ( 'facebook' == $group ) {
+				$title       = get_post_meta( $post->ID, 'sf_title_'.$group, true );
+				$description = get_post_meta( $post->ID, 'sf_description_'.$group, true );
+			} else {
+				$title = $post->post_title;
+				$description = ( !empty( $post->post_excerpt ) ) ? $post->post_excerpt : $post->post_content;
+				$description = wp_trim_words( strip_tags( apply_filters( 'the_content', $description ) ), 20, '...' );
+			}
+
+			$image = get_post_meta( $post->ID, 'sf_image_'.$group, true );
 		?>
 		<div class="sf-additional-fields">
 			<div class="sf-attachments">
-				<div class="sf-attachment-slider" id="sf-attachment-slider">
+				<div class="sf-attachment-slider">
 					<?php $SocialFlow_Post->post_attachments( $post->ID, $post->post_content ); ?>
 				</div>
 
-				<span title="<?php _e( 'Previous', 'socialflow' ) ?>" class="prev icon" id="sf-attachment-slider-prev"><?php _e( 'Previous', 'socialflow' ); ?></span>
-				<span title="<?php _e( 'Next', 'socialflow' ) ?>" class="next icon" id="sf-attachment-slider-next"><?php _e( 'Next', 'socialflow' ); ?></span>
-				<span class="sf-update-attachments icon reload" id="sf-update-attachments"><?php _e( 'Update attachments' ); ?></span>
+				<span title="<?php _e( 'Previous', 'socialflow' ) ?>" class="prev icon sf-attachment-slider-prev"><?php _e( 'Previous', 'socialflow' ); ?></span>
+				<span title="<?php _e( 'Next', 'socialflow' ) ?>" class="next icon sf-attachment-slider-next"><?php _e( 'Next', 'socialflow' ); ?></span>
+				<span class="sf-update-attachments icon reload sf-update-attachments"><?php _e( 'Update attachments' ); ?></span>
 
-				<input id="sf-current-attachment" type="hidden" name="socialflow[image][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $image ); ?>" />
+				<input class="sf-current-attachment" type="hidden" name="socialflow[image][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $image ); ?>" />
 			</div>
 
+			<?php if ( 'facebook' == $group ) : ?>
 			<input data-content-selector="#title" class="autofill sf-title widefat socialflow-title-<?php echo esc_attr( $group ); ?>" type="text" name="socialflow[title][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $title ); ?>" placeholder="<?php _e( 'Title', 'socialflow' ); ?>" />
 			<textarea data-content-selector="#content" class="autofill sf-description widefat socialflow-description-<?php echo esc_attr( $group ); ?>" name="socialflow[description][<?php echo esc_attr( $group ); ?>]" cols="30" rows="5" placeholder="<?php _e( 'Description', 'socialflow' ); ?>"><?php echo esc_textarea( $description ); ?></textarea>
+			<?php else : ?>
+			<div class="sf-muted-text" data-content-selector="#title" class="autofill"><?php echo esc_attr( $title ); ?></div> <hr>
+			<div class="sf-muted-text" data-content-selector="#content" class="autofill" ><small><?php echo esc_textarea( $description ); ?></small></div>
+			<?php endif; ?>
 		</div>
 		<?php endif; // fecebook group ?>
 	</div>

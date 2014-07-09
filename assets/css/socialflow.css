@@ -19,6 +19,10 @@
 	font-size:10px;
 }
 
+.sf-muted-text {
+	color: #777;
+}
+
 /* Tabs */
 .compose-tabs {
 	margin:12px 0 0;
@@ -82,13 +86,12 @@
 	width: 130px;
 }
 
-/**
- * Hide Google plus tabs 
- */
-/*.socialflow-compose .google_plus-tab-panel,
-.socialflow-compose .google_plus-tab-item {
-	display: none;
-}*/
+/* For google we have attachments gallery left to message textarea */
+
+.google_plus-tab-panel .sf-additional-fields hr {
+	opacity: 0.5;
+	
+}
 
 /* Compose form inside thickbox */
 #TB_window .sf_compose {

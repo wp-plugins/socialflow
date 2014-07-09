@@ -57,11 +57,14 @@ jQuery(function($){
 				text = text.replace( '&nbsp;', '' )
 				text = $.trim( text )
 
-				input.val( text ).trigger( 'change' );
+				if ( typeof input.attr('value') == 'undefined' )
+					input.html( text ).trigger( 'change' );
+				else
+					input.val( text ).trigger( 'change' );
 			});
 
 			// update attachements
-			$('#sf-update-attachments').trigger( 'click' );
+			$('.sf-update-attachments').trigger( 'click' );
 		})
 
 		// Compose Tabs
@@ -90,7 +93,8 @@ jQuery(function($){
 
 		$('textarea.socialflow-message-twitter').maxlength({
 			'maxCharacters' : 117,
-			'events' : [ 'change' ]
+			'events' : [ 'change' ],
+			'statusText': 'characters left'
 		})
 
 		/* =Advanced block
@@ -171,51 +175,55 @@ jQuery(function($){
 
 		// Thumbnail slider
 		function init_slides() {
-			var slides = $('#sf-attachment-slider .slide'),
-				slide_input = $('#sf-current-attachment'),
-				start  = slides.filter(':has( img[src="'+ slide_input.val() +'"] )').index() || 0
-
-			if ( slides.length > 0 ) {
-				slides.bind('slide', function(){
-					slide_input.val( $(this).find('img').attr('src') )
-				})
+			$('.sf-attachments').each(function() {
+				var slider = $(this),
+					slides = slider.find('.slide'),
+					curSlideInput = slider.find('.sf-current-attachment');
+				
+				if ( slides.length < 1 )
+					return;
 
 				$.featureList( 
 					slides,
-					{ start_item : start, nav_next : '#sf-attachment-slider-next', nav_prev : '#sf-attachment-slider-prev' } 
-				)
-			}
+					{ 
+						start_item : slides.filter(':has( img[src="'+ curSlideInput.val() +'"] )').index() || 0, 
+						nav_next : slider.find('.sf-attachment-slider-next'), 
+						nav_prev : slider.find('.sf-attachment-slider-prev')
+					} 
+				);
+
+				slides.on('slide', function() {
+					curSlideInput.val( $(this).find('img').attr('src') );
+				});
+			});
 		}
 		init_slides();
 
-		// update image attachments list via ajax
-		$('#sf-update-attachments').click(function(e){
-			e.preventDefault()
+		$('body').on('click', '.sf-update-attachments', function (e) {
+			e.preventDefault();
+			var updater = $(this);
 
 			var id = $('#sf-post-id').val(),
-				content = '',
-				contentWrap = document.getElementById('wp-content-wrap');
+				content;
 
-			if (is_ajax)
+			// Get content either from tinyMce or textarea
+			if ( is_ajax )
 				content = sf_post['editor'];
 			else
-				content = (tinyMCE.activeEditor !== null && contentWrap.className.indexOf('tmce-active') > -1) ? tinyMCE.activeEditor.getContent() : document.getElementById('content').value;
+				content = ( document.getElementById('wp-content-wrap').className.indexOf('tmce-active') > -1 ) ? tinyMCE.activeEditor.getContent() : document.getElementById('content').value;
 
-			// Send ajax request for attachments
 			$.ajax({
 				url: ajaxurl,
 				type: 'post',
 				dataType: 'html',
 				data: { action: 'sf_attachments', ID: id, content:content },
 				success: function(slides){
-					$('#sf-attachment-slider').html(slides)
+					updater.parents('.sf-attachments').find('.sf-attachment-slider').html(slides);
 					init_slides()
 				}
 			})
+		});
 
-
-		})
-		
 		// bind form submit whe ajax call
 		if ( is_ajax ) {
 			
