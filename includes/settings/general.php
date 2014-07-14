@@ -197,7 +197,6 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 	function page() {
 		global $socialflow; ?>
 		<div class="wrap socialflow">
-			<div class="icon32"><img src="<?php echo plugins_url( 'assets/images/socialflow.png', SF_FILE ) ?>" alt=""></div>
 			<h2><?php esc_html_e( 'Default Settings', 'socialflow' ); ?></h2>
 
 			<?php settings_errors( $this->slug ); ?>
