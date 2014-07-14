@@ -98,12 +98,14 @@ class SocialFlow_Admin {
 
 			// Enqueue neccessary scripts 
 			wp_enqueue_script( 'timepicker', plugins_url( 'assets/js/jquery.timepicker.js', SF_FILE ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-datepicker'), true );
-			wp_enqueue_script( 'jquery.maxlength', plugins_url( 'assets/js/jquery.maxlength-min.js', SF_FILE ), array( 'jquery'), '1.0.5', true );
+			wp_enqueue_script( 'jquery.maxlength', plugins_url( 'assets/js/jquery.maxlength.js', SF_FILE ), array( 'jquery'), '1.0.5', true );
 			wp_enqueue_script( 'socialflow-slider', plugins_url( 'assets/js/thumb-slider.js', SF_FILE ), array( 'jquery'), '1.1.5', true );
 
 			wp_register_script( 'socialflow-admin', plugins_url( 'assets/js/socialflow.js', SF_FILE ), array( 'jquery'), '2.0', true );
 			wp_enqueue_script( 'socialflow-admin' );
+
 			wp_enqueue_script( 'socialflow-categories', plugins_url( 'assets/js/sf-categories.js', SF_FILE ), array( 'jquery'), '2.0', true );
+			wp_enqueue_script( 'twitter-text', plugins_url( 'assets/js/twitter-text.js', SF_FILE ), array( 'jquery'), '1.0', true );
 
 			// Enqeue styles
 			wp_enqueue_style( 'socialflow-admin', plugins_url( 'assets/css/socialflow.css', SF_FILE ) );
@@ -139,7 +141,8 @@ class SocialFlow_Admin {
 			$accounts = $api->get_account_list();
 
 			if ( is_wp_error( $accounts ) ) {
-				
+				wp_redirect( add_query_arg( 'page', 'socialflow', admin_url( 'admin.php' ) ) );
+				exit;
 			}
 
 			// Enable all publishing accounts by default

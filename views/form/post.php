@@ -54,9 +54,9 @@ foreach ( $grouped_accounts as $group => $group_accounts ) :
 		<textarea data-content-selector="#title" class="autofill widefat socialflow-message-<?php echo esc_attr( $group ); ?>" id="sf_message_<?php echo esc_attr( $group ); ?>" name="socialflow[message][<?php echo esc_attr( $group ); ?>]" cols="30" rows="5" placeholder="<?php _e('Message', 'socialflow') ?>" ><?php echo esc_html( $message ); ?></textarea>
 
 		<?php if ( 'google_plus' == $group ) : ?>
-			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for G+ underneath', 'socialflow' ); ?></span>
+			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for G+', 'socialflow' ); ?></span>
 		<?php elseif ( 'linkedin' == $group ) : ?>
-			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for LinkedIn underneath', 'socialflow' ); ?></span>
+			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for LinkedIn', 'socialflow' ); ?></span>
 		<?php endif; ?>
 
 		<?php if ( in_array( $group, array( 'google_plus', 'facebook', 'linkedin' ) ) ) :
