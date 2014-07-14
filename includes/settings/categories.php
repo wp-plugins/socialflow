@@ -64,7 +64,6 @@ class SocialFlow_Admin_Settings_Categories extends SocialFlow_Admin_Settings_Pag
 	function page() {
 		global $socialflow; ?>
 		<div class="wrap socialflow" id="socialflow-<?php echo esc_attr( $this->slug ); ?>">
-			<div class="icon32"><img src="<?php echo plugins_url( 'assets/images/socialflow.png', SF_FILE ) ?>" alt=""></div>
 			<h2><?php esc_html_e( 'Category Routing', 'socialflow' ); ?> <img class="sf-loader" style="display:none;" src="<?php echo plugins_url( 'assets/images/wpspin.gif', SF_FILE ) ?>" alt=""> </h2>
 
 			<?php $this->display_list(); ?>

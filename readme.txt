@@ -37,6 +37,10 @@ http://support.socialflow.com/entries/20573086-wordpress-plugin-faq-help
 
 == Changelog == 
 
+= 2.4.1 =
+* Minor text replacements
+* New menu icon
+
 = 2.4 =
 * Support LinkedIn accounts
 * Minor bug fixes

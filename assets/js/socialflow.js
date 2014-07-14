@@ -91,11 +91,13 @@ jQuery(function($){
 		$('#sf-compose-tabs li:first-child a').click()
 
 
-		$('textarea.socialflow-message-twitter').maxlength({
-			'maxCharacters' : 117,
+
+		$('#sf_message_twitter').maxlength({
+			'maxCharacters' : 140,
 			'events' : [ 'change' ],
-			'statusText': 'characters left'
-		})
+			'statusText' : 'characters left',
+			'twitterText' : true
+		});
 
 		/* =Advanced block
 		----------------------------------------------- */
