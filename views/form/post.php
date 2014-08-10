@@ -55,13 +55,11 @@ foreach ( $grouped_accounts as $group => $group_accounts ) :
 
 		<?php if ( 'google_plus' == $group ) : ?>
 			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for G+', 'socialflow' ); ?></span>
-		<?php elseif ( 'linkedin' == $group ) : ?>
-			<span class="sf-muted-text"><?php _e( '* Metadata title and description are not editable for LinkedIn', 'socialflow' ); ?></span>
 		<?php endif; ?>
 
 		<?php if ( in_array( $group, array( 'google_plus', 'facebook', 'linkedin' ) ) ) :
 
-			if ( 'facebook' == $group ) {
+			if ( in_array( $group, array( 'facebook', 'linkedin' ) ) ) {
 				$title       = get_post_meta( $post->ID, 'sf_title_'.$group, true );
 				$description = get_post_meta( $post->ID, 'sf_description_'.$group, true );
 			} else {
@@ -85,7 +83,7 @@ foreach ( $grouped_accounts as $group => $group_accounts ) :
 				<input class="sf-current-attachment" type="hidden" name="socialflow[image][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $image ); ?>" />
 			</div>
 
-			<?php if ( 'facebook' == $group ) : ?>
+			<?php if ( in_array( $group, array( 'facebook', 'linkedin' ) ) ) : ?>
 			<input data-content-selector="#title" class="autofill sf-title widefat socialflow-title-<?php echo esc_attr( $group ); ?>" type="text" name="socialflow[title][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $title ); ?>" placeholder="<?php _e( 'Title', 'socialflow' ); ?>" />
 			<textarea data-content-selector="#content" class="autofill sf-description widefat socialflow-description-<?php echo esc_attr( $group ); ?>" name="socialflow[description][<?php echo esc_attr( $group ); ?>]" cols="30" rows="5" placeholder="<?php _e( 'Description', 'socialflow' ); ?>"><?php echo esc_textarea( $description ); ?></textarea>
 			<?php else : ?>

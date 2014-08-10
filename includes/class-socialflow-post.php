@@ -235,6 +235,7 @@ class SocialFlow_Post {
 			// Prevent multiple form submission
 			if ( get_post_meta( $post->ID, 'socialflow_nonce', true ) !== $_POST['socialflow_nonce'] )
 				return;
+
 			delete_post_meta( $post->ID, 'socialflow_nonce' );
 
 			// Check if user has enough capabilities
@@ -429,21 +430,17 @@ class SocialFlow_Post {
 				$advanced[ $account_id ]['content_attributes']['link'] = get_permalink( $post_id );				
 			}
 
-			if ( 'facebook' == $type ) {
-				if ( get_post_meta( $post_id, 'sf_title_facebook', true ) )
-					$advanced[ $account_id ]['content_attributes']['name'] = esc_html( get_post_meta( $post_id, 'sf_title_facebook', true ) );
-				if ( get_post_meta( $post_id, 'sf_description_facebook', true ) )
-					$advanced[ $account_id ]['content_attributes']['description'] = wp_trim_words(esc_html( get_post_meta( $post_id, 'sf_description_facebook', true ) ), 150, ' ...' );
-				if ( get_post_meta( $post_id, 'sf_image_facebook', true ) )
-					$advanced[ $account_id ]['content_attributes']['picture'] = get_post_meta( $post_id, 'sf_image_facebook', true );
-			}
-
 			if ( 'google_plus' == $type && ( $image = get_post_meta( $post_id, 'sf_image_google_plus', true ) ) ) {
 				$advanced[ $account_id ]['content_attributes']['picture'] = $image;
 			}
 
-			if ( 'linkedin' == $type && ( $image = get_post_meta( $post_id, 'sf_image_linkedin', true ) ) ) {
-				$advanced[ $account_id ]['content_attributes']['picture'] = $image;
+			if ( in_array( $type, array( 'facebook', 'linkedin' ) ) ) {
+				if ( get_post_meta( $post_id, 'sf_title_' . $type, true ) )
+					$advanced[ $account_id ]['content_attributes']['name'] = esc_html( get_post_meta( $post_id, 'sf_title_' . $type, true ) );
+				if ( get_post_meta( $post_id, 'sf_description_' . $type, true ) )
+					$advanced[ $account_id ]['content_attributes']['description'] = wp_trim_words(esc_html( get_post_meta( $post_id, 'sf_description_' . $type, true ) ), 150, ' ...' );
+				if ( get_post_meta( $post_id, 'sf_image_' . $type, true ) )
+					$advanced[ $account_id ]['content_attributes']['picture'] = get_post_meta( $post_id, 'sf_image_' . $type, true );
 			}
 
 			// add current user display name and email to send queue

@@ -176,6 +176,9 @@ class SocialFlow_Accounts {
 
 		$type = self::get_global_type( $account );
 
+		if ( empty( $type ) )
+			return __( 'Missing account', 'socialflow' );
+
 		// Retrieve account name depending on account type
 		switch ( $type ) {
 			case 'facebook':
