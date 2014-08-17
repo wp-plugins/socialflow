@@ -112,23 +112,15 @@
 			function getLength( item ) {
 				var i,
 					filter, 
-					extractedUrls;
+					extractedUrls,
+					messageMaxLength = 140;
 
 				var message = item.val();
 
-				if ( !settings.twitterText || typeof twttr == 'undefined' )
+				if ( !settings.twitterText || typeof twttr === 'undefined' )
 					return message.length;
 
-				filler = "01234567890123456789";
-				extractedUrls = twttr.txt.extractUrlsWithIndices(message);
-
-				if ( extractedUrls.length > 0 ) {
-					for (i = 0; i < extractedUrls.length; i++) {
-						message = message.replace(extractedUrls[i].url, filler);
-					}
-				}
-
-				return message.length;
+				return twttr.txt.getTweetLength(message);
 			}
 
 			// Validate
