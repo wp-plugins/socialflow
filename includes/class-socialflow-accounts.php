@@ -46,10 +46,18 @@ class SocialFlow_Accounts {
 	 * @return mixed ( array | bool ) Return array of accounts or false if none matched
 	 * can also return single account if client_account_id is passed instead of query array
 	 */
-	function get( $query = array() ) {
+	function get( $query = array(), $post_type = 'post' ) {
 		global $socialflow;
 
 		$accounts = $socialflow->options->get( 'accounts', array() );
+
+		// For attachments return accounts with specific types only
+		if ( 'attachment' == $post_type ) {
+			foreach ( $accounts as $key => $account ) {
+				if ( !in_array( $account['account_type'], array( 'twitter', 'facebook_page', 'google_plus_page' ) ) )
+					unset( $accounts[ $key ] );
+			}
+		}
 
 		// return all acconts if empty query passed
 		if ( empty( $query ) )
@@ -222,6 +230,7 @@ class SocialFlow_Accounts {
 		foreach ($accounts as $key => $account) {
 			// Define
 			$type = self::get_global_type($account);
+
 			if (isset($new[$type]))
 				$new[$type][] = $account;
 			else
@@ -232,7 +241,9 @@ class SocialFlow_Accounts {
 		if ( false == $order )
 			return $accounts;
 
-		return array_replace( array_flip( self::$type_order ), $accounts );
+		$types = array_intersect( array_flip( self::$type_order ), array_keys( $accounts ) );
+
+		return array_replace( $types, $accounts );
 	}
 
 
@@ -426,6 +437,15 @@ class SocialFlow_Accounts {
 				}
 
 				$valid_data[ $account_id ]['content_attributes'] = json_encode( $values['content_attributes'] );
+			}
+
+			// Custom image
+			if ( isset( $values['media_thumbnail_url'] ) ) {
+				$valid_data[ $account_id ]['media_thumbnail_url'] = $values['media_thumbnail_url'];
+
+				if ( isset( $values['media_filename'] ) ) {
+					$valid_data[ $account_id ]['media_filename'] = $values['media_filename'];
+				}
 			}
 
 			// add additianal fields

@@ -23,7 +23,10 @@ update_post_meta( $post->ID, 'socialflow_nonce', $nonce );
 ?>
 <input type="hidden" name="socialflow_nonce" value="<?php echo $nonce; ?>" />
 
+<input type="hidden" name="sf_current_post_id" id="sf_current_post_id" value="<?php echo esc_attr( $post->ID ); ?>">
+
 <p class="sf_compose">
+	<input id="sf_compose" type="checkbox" value="1" name="socialflow[compose_now]" <?php checked( $compose_now, 1 ); ?> />
 	<label for="sf_compose">
 		<?php if ( 'publish' != $post->post_status ) : ?>
 			<?php _e( 'Send to SocialFlow when the post is published', 'socialflow' ); ?>
@@ -31,10 +34,16 @@ update_post_meta( $post->ID, 'socialflow_nonce', $nonce );
 			<?php _e( 'Send to SocialFlow when the post is updated', 'socialflow' ); ?>
 		<?php endif; ?>
 	</label>
-	<input id="sf_compose" type="checkbox" value="1" name="socialflow[compose_now]" <?php checked( $compose_now, 1 ); ?> />
 </p>
 
-<button id="sf_autofill" class="button">Auto-populate</button>
+<?php if ( 'attachment' !== $post->post_type ) : ?>
+	<p class="sf-media-toggle-container"> 
+		<input id="sf_media_compose" class="sf_media_compose" type="checkbox" value="1" name="socialflow[compose_media]" <?php checked( get_post_meta( $post->ID, 'sf_compose_media', true ), 1 ); ?> />
+		<label for="sf_media_compose"><?php _e( 'Image Post', 'socialflow' ) ?></label>
+	</p>
+<?php endif; ?>
+
+<p class="sf-autofill-button-container"><button id="sf_autofill" class="button"><?php _e( 'Auto-populate', 'socialflow' ); ?></button></p>
 
 <input id="sf-post-id" type="hidden" value="<?php echo esc_attr( $post->ID ); ?>" />
 
@@ -47,7 +56,7 @@ update_post_meta( $post->ID, 'socialflow_nonce', $nonce );
 <?php
 // Loop through grouped accounts
 foreach ( $grouped_accounts as $group => $group_accounts ) :
-	$message = esc_html( get_post_meta( $post->ID, 'sf_message_'.$group, true ) );
+	$message = esc_html( apply_filters( 'sf_message', get_post_meta( $post->ID, 'sf_message_'.$group, true ), $group, $post ) );
 ?>
 	<div class="tabs-panel sf-tabs-panel <?php echo esc_attr( $group ); ?>-tab-panel" id="sf-compose-<?php echo esc_attr( $group ); ?>-panel">
 
@@ -69,18 +78,58 @@ foreach ( $grouped_accounts as $group => $group_accounts ) :
 			}
 
 			$image = get_post_meta( $post->ID, 'sf_image_'.$group, true );
+
+			if ( 'attachment' == $post->post_type ) {
+				$is_custom_image = true;
+				$media_image = $SocialFlow_Post->get_attachment_media( $post->ID );
+
+				$custom_image = is_array( $media_image ) ? $media_image['medium_thumbnail_url'] : '';
+				$custom_image_filename = is_array( $media_image ) ? $media_image['filename'] : '';
+			} 
+			else {
+				$is_custom_image = absint( get_post_meta( $post->ID, 'sf_is_custom_image_'.$group, true ) );
+				$custom_image = get_post_meta( $post->ID, 'sf_custom_image_'.$group, true );
+				$custom_image_filename = get_post_meta( $post->ID, 'sf_custom_image_filename_'.$group, true );
+			}
+
 		?>
 		<div class="sf-additional-fields">
-			<div class="sf-attachments">
-				<div class="sf-attachment-slider">
-					<?php $SocialFlow_Post->post_attachments( $post->ID, $post->post_content ); ?>
+
+			<div class="sf-attachments js-sf-attachments <?php if ( $is_custom_image ) echo 'sf-is-custom-attachment'; ?>">
+
+				<div class="sf-attachments-slider">
+					<div class="image-container sf-attachment-slider">
+						<?php $SocialFlow_Post->post_attachments( $post->ID, $post->post_content ); ?>
+					</div>
+
+					<?php if ( 'linkedin' !== $group ) : ?>
+						<button class="button button-attachment-switch-status js-toggle-custom-image"><?php _e( 'Select', 'socialflow' ); ?></button>
+					<?php endif; ?>
+
+					<span title="<?php _e( 'Previous', 'socialflow' ) ?>" class="prev icon sf-attachment-slider-prev"><?php _e( 'Previous', 'socialflow' ); ?></span>
+					<span title="<?php _e( 'Next', 'socialflow' ) ?>" class="next icon sf-attachment-slider-next"><?php _e( 'Next', 'socialflow' ); ?></span>
+					<span class="sf-update-attachments icon reload sf-update-attachments"><?php _e( 'Update attachments', 'socialflow' ); ?></span>
 				</div>
 
-				<span title="<?php _e( 'Previous', 'socialflow' ) ?>" class="prev icon sf-attachment-slider-prev"><?php _e( 'Previous', 'socialflow' ); ?></span>
-				<span title="<?php _e( 'Next', 'socialflow' ) ?>" class="next icon sf-attachment-slider-next"><?php _e( 'Next', 'socialflow' ); ?></span>
-				<span class="sf-update-attachments icon reload sf-update-attachments"><?php _e( 'Update attachments' ); ?></span>
+				<div class="sf-attachments-custom">
+					<div class="image-container">
+						<?php if ( $custom_image ) : ?>
+							<img src="<?php echo esc_attr( $custom_image ); ?>" alt="">
+						<?php endif; ?>
+					</div>
+
+					<?php if ( 'linkedin' !== $group ) : ?>
+						<button class="button button-attachment-switch-status js-toggle-custom-image"><?php _e( 'Cancel', 'socialflow' ); ?></button>
+					<?php endif; ?>
+
+					<button class="button js-attachments-set-custom-image sf-custom-attachment-button"><?php _e( 'Select', 'socialflow' ); ?> <span class="additional-hint"><?php _e( 'image', 'socialflow' ); ?></span></button>
+				</div>
 
 				<input class="sf-current-attachment" type="hidden" name="socialflow[image][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $image ); ?>" />
+
+				<input class="sf-is-custom-image" type="hidden" name="socialflow[is_custom_image][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $is_custom_image ); ?>" />
+				<input class="sf-custom-image" type="hidden" name="socialflow[custom_image][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $custom_image ); ?>" />
+				<input class="sf-custom-image-filename" type="hidden" name="socialflow[custom_image_filename][<?php echo esc_attr( $group ); ?>]" value="<?php echo esc_attr( $custom_image_filename ); ?>" />
 			</div>
 
 			<?php if ( in_array( $group, array( 'facebook', 'linkedin' ) ) ) : ?>
@@ -88,12 +137,27 @@ foreach ( $grouped_accounts as $group => $group_accounts ) :
 			<textarea data-content-selector="#content" class="autofill sf-description widefat socialflow-description-<?php echo esc_attr( $group ); ?>" name="socialflow[description][<?php echo esc_attr( $group ); ?>]" cols="30" rows="5" placeholder="<?php _e( 'Description', 'socialflow' ); ?>"><?php echo esc_textarea( $description ); ?></textarea>
 			<?php else : ?>
 			<div class="sf-muted-text" data-content-selector="#title" class="autofill"><?php echo esc_attr( $title ); ?></div> <hr>
-			<div class="sf-muted-text" data-content-selector="#content" class="autofill" ><small><?php echo esc_textarea( $description ); ?></small></div>
+			<div class="sf-muted-text" data-content-selector="#content" class="autofill" ><small><?php echo esc_html( $description ); ?></small></div>
 			<?php endif; ?>
 		</div>
 		<?php endif; // fecebook group ?>
 	</div>
 <?php endforeach; // accounts loop ?>
+
+<div class="tabs-panel sf-media-attachment">
+	<?php $media = get_post_meta( $post->ID, 'sf_media', true ); ?>
+
+	<div class="sf-image-container">
+		<?php if ( $media ) : ?>
+		<img src="<?php echo esc_attr( $media['medium_thumbnail_url'] ); ?>" alt="">
+		<?php endif; ?>
+	</div>
+
+	<?php if ( 'attachment' !== $post->post_type ) : ?>
+		<button class="button js-attachments-set-media sf-custom-attachment-button"><?php _e( 'Select', 'socialflow' ); ?> <span class="additional-hint"><?php _e( 'image', 'socialflow' ); ?></span></button>
+	<?php endif; ?>
+</div>
+
 
 <?php  // Render advenced settings ?>
 <div class="advanced-settings">

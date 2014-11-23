@@ -94,7 +94,7 @@ class SocialFlow_Admin {
 	 */
 	function load_settings_page() {
 		global $pagenow;
-		if ( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php', 'edit.php', 'options-general.php' ) ) ) {
+		if ( in_array( $pagenow, array( 'post.php', 'post-new.php', 'admin.php', 'edit.php', 'options-general.php', 'upload.php' ) ) ) {
 
 			// Enqueue neccessary scripts 
 			wp_enqueue_script( 'timepicker', plugins_url( 'assets/js/jquery.timepicker.js', SF_FILE ), array( 'jquery', 'jquery-ui-slider', 'jquery-ui-datepicker'), true );
@@ -110,6 +110,8 @@ class SocialFlow_Admin {
 			// Enqeue styles
 			wp_enqueue_style( 'socialflow-admin', plugins_url( 'assets/css/socialflow.css', SF_FILE ) );
 			wp_enqueue_style( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/themes/smoothness/jquery-ui.css', false, '1.8.1', false);
+
+			wp_enqueue_media();
 
 			// Thickbox scripts for compose now post action
 			wp_enqueue_script( 'thickbox' );
