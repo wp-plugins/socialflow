@@ -180,10 +180,6 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 			'objects'
 		);
 
-		// Skip attachments
-		if ( isset( $types['attachment'] ) )
-			unset( $types['attachment'] );
-
 		foreach ( $types as $type => $post_type ) : ?>
 			<input type="checkbox" value="<?php echo esc_attr( $type ); ?>" name="socialflow[post_type][]" <?php checked( true, in_array( $type, $checked ) ) ?> id="sf_post_types-<?php echo esc_attr( $type ); ?>" />
 			<label for="sf_post_types-<?php echo esc_attr( $type ); ?>"><?php echo esc_attr( $post_type->labels->name ); ?></label>

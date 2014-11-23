@@ -110,15 +110,18 @@
 			}
 
 			function getLength( item ) {
-				var i,
-					filter, 
-					extractedUrls,
-					messageMaxLength = 140;
-
 				var message = item.val();
 
 				if ( !settings.twitterText || typeof twttr === 'undefined' )
 					return message.length;
+
+				settings.maxCharacters = 116;
+
+				// message will contain image link
+				if ( $('#socialflow-compose').hasClass('sf-compose-attachment') ) {
+					// message += ' https://mediaimage.com';
+					settings.maxCharacters = 94;
+				}
 
 				return twttr.txt.getTweetLength(message);
 			}

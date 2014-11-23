@@ -52,10 +52,7 @@ jQuery(function($){
 					}
 				}
 
-				// Remove html tags, shortcodes, html special chars and whitespaces from the beginning and end of text
-				text = text.replace(/<(?:.|\n)*?>/gm, '').replace( /\[(?:.|\n)*?\]/gm, '' )
-				text = text.replace( '&nbsp;', '' )
-				text = $.trim( text )
+				text = cleanText(text);
 
 				if ( typeof input.attr('value') == 'undefined' )
 					input.html( text ).trigger( 'change' );
@@ -65,7 +62,18 @@ jQuery(function($){
 
 			// update attachements
 			$('.sf-update-attachments').trigger( 'click' );
-		})
+		});
+
+		/**
+		 * Remove html tags, shortcodes, html special chars and whitespaces from the beginning and end of text
+		 * @param  {string} text Text to be cleand
+		 * @return {string}      CLean text
+		 */
+		function cleanText(text) {
+			text = text.replace(/<(?:.|\n)*?>/gm, '').replace( /\[(?:.|\n)*?\]/gm, '' );
+			text = text.replace( '&nbsp;', '' );
+			return $.trim( text );
+		}
 
 		// Compose Tabs
 		$('#sf-compose-tabs').delegate('a', 'click', function(e) {
@@ -88,12 +96,10 @@ jQuery(function($){
 			$('.sf-tabs-panel').not( panel ).removeClass('active').hide()
 			panel.addClass('active').show()
 		})
-		$('#sf-compose-tabs li:first-child a').click()
-
-
+		$('#sf-compose-tabs li:first-child a').trigger('click');
 
 		$('#sf_message_twitter').maxlength({
-			'maxCharacters' : 140,
+			'maxCharacters' : 117,
 			'events' : [ 'change' ],
 			'statusText' : 'characters left',
 			'twitterText' : true
@@ -180,19 +186,27 @@ jQuery(function($){
 			$('.sf-attachments').each(function() {
 				var slider = $(this),
 					slides = slider.find('.slide'),
-					curSlideInput = slider.find('.sf-current-attachment');
+					curSlideInput = slider.find('.sf-current-attachment'),
+					startItem = slides.filter(':has( img[src="'+ curSlideInput.val() +'"] )').index();
 				
 				if ( slides.length < 1 )
 					return;
 
+				// Check if startItem exists
+				startItem = (startItem < 0) ? 0 : startItem;
+
 				$.featureList( 
 					slides,
 					{ 
-						start_item : slides.filter(':has( img[src="'+ curSlideInput.val() +'"] )').index() || 0, 
+						start_item : startItem, 
 						nav_next : slider.find('.sf-attachment-slider-next'), 
 						nav_prev : slider.find('.sf-attachment-slider-prev')
 					} 
 				);
+
+				// Set initial slide as curSlideInput
+				curSlideInput.val( slides.eq(startItem).find('img').attr('src') );
+				
 
 				slides.on('slide', function() {
 					curSlideInput.val( $(this).find('img').attr('src') );
@@ -220,11 +234,237 @@ jQuery(function($){
 				dataType: 'html',
 				data: { action: 'sf_attachments', ID: id, content:content },
 				success: function(slides){
-					updater.parents('.sf-attachments').find('.sf-attachment-slider').html(slides);
+					var container = updater.parents('.sf-attachments');
+					container.find('.sf-attachment-slider').html(slides);
+					container.find('.sf-current-attachment').val('');
 					init_slides()
 				}
 			})
 		});
+
+
+		// Update images after featured image was set
+		$(document).bind("ajaxComplete", function(event, xhr, settings){
+			if ( !settings.hasOwnProperty('data') )
+				return;
+
+			// New thumbnail added 
+			if ( settings.data.indexOf('action=set-post-thumbnail') > -1 && settings.data.indexOf('thumbnail_id=-1') === -1 ) {
+				maybeUpdateCustomMedias(getParameterByName('thumbnail_id', settings.data));
+			}
+
+			// Posts Image updated
+			if ( settings.data.indexOf('action=set-post-thumbnail') > -1 || settings.data.indexOf('action=send-attachment-to-editor') > -1 ) {
+				$('.sf-update-attachments').trigger('click');
+			}
+		});
+
+
+		function maybeUpdateCustomMedias(thumbnailId) {
+			if ('' === thumbnailId)
+				return;
+
+			$('.sf-custom-image[value=""]').each(function (i, field) {
+
+				// We are attached to the button if want to update custom image
+				sf_attach_custom_image( $(field).parents('.sf-attachments').find('.js-attachments-set-custom-image'), thumbnailId );
+			});
+
+			// Attach media If not set
+			if ( $('.sf-media-attachment .sf-image-container').has('img').length == 0 ) {
+				sf_attach_media( $('.js-attachments-set-media'), thumbnailId );
+			}
+		}
+
+		/**
+		 * Get attribute name from serialized string
+		 * @param  {string} name   Attribute name
+		 * @param  {string} string String to parse
+		 * @return {string}        Attribute value
+		 */
+		function getParameterByName(name, string) {
+			var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+
+			name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+
+			results = regex.exec(string);
+			return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+		}
+
+		// Media mode
+		$('body').on('change', '.sf_media_compose', function(event) {
+			event.preventDefault();
+
+			if ( $(this).is(':checked') )
+				$('#socialflow-compose').addClass('sf-compose-attachment');
+			else
+				$('#socialflow-compose').removeClass('sf-compose-attachment');
+
+			// Trigger change to update chars left counter
+			$('#sf_message_twitter').trigger('change');
+		});
+
+
+		// Update custom facebook text block
+		$('body').on('blur', '#content', updateFbMediaDescription);
+		$('body').on('blur', '#title', updateFbMediaTitle);
+
+
+		$('body').on('wp-tinymce-loaded', initMCEFbMediaDescription);
+
+		/**
+		 * Fill in facebook title and description (uneditable) for media composition
+		 * @todo cache dom elements to speed up
+		 * @return {void}
+		 */
+		function updateFbMediaDescription (event) {
+			var description;
+
+			if ( event.hasOwnProperty('target') && 'TEXTAREA' == event.target.nodeName ) {
+				description = $(this).val();
+			} else {
+				description = tinyMCE.activeEditor.getContent();
+			}
+
+			description = cleanText(description);
+
+			$('.sf-media-facebook-description').html(description);
+		}
+		function updateFbMediaTitle () {
+			$('.sf-media-facebook-title').html( $(this).val() );
+		}
+
+		function initMCEFbMediaDescription() {
+			tinyMCE.activeEditor.on('blur', updateFbMediaDescription);
+		}
+
+		/**
+		 * Toggle custom image and one of the attachments select
+		 */
+		$('body').on('click', '.js-toggle-custom-image', function(event) {
+			var container = $(this).parents('.sf-attachments'),
+				statusInput = container.find('.sf-is-custom-image'),
+				className = 'sf-is-custom-attachment';
+
+			event.preventDefault();
+
+			if ( '1' === statusInput.val() ) {
+				container.removeClass(className);
+				statusInput.val('0');
+			} else {
+				container.addClass(className);
+				statusInput.val('1');
+			}
+		});
+
+		/**
+		 * Set Custom image
+		 * @return {void}
+		 */
+		$('body').on('click', '.js-attachments-set-custom-image', function(event) {
+			var button = $(this);
+
+			event.preventDefault();
+
+			if ( button.data('frame') ) {
+				button.data('frame').open();
+				return;
+			}
+
+			// Create the media frame.
+			button.data('frame', wp.media.frames.file_frame = wp.media({
+				title: jQuery( this ).data( 'uploader_title' ),
+				button: {
+					text: jQuery( this ).data( 'uploader_button_text' ),
+				},
+				multiple: false  // Set to true to allow multiple files to be selected
+			}));
+
+			// When an image is selected, run a callback.
+			button.data('frame').on( 'select', $.proxy(sf_attach_custom_image, button, button));
+
+			// Finally, open the modal
+			button.data('frame').open();
+		});
+
+		/**
+		 * Set Media image
+		 * @return {void}
+		 */
+		$('body').on('click', '.js-attachments-set-media', function(event) {
+			var button = $(this);
+
+			event.preventDefault();
+
+			if ( button.data('frame') ) {
+				button.data('frame').open();
+				return;
+			}
+
+			// Create the media frame.
+			button.data('frame', wp.media.frames.file_frame = wp.media({
+				title: jQuery( this ).data( 'uploader_title' ),
+				button: {
+					text: jQuery( this ).data( 'uploader_button_text' ),
+				},
+				multiple: false  // Set to true to allow multiple files to be selected
+			}));
+
+			// When an image is selected, run a callback.
+			button.data('frame').on( 'select', $.proxy(sf_attach_media, null, button));
+
+			// Finally, open the modal
+			button.data('frame').open();
+		});
+
+		function sf_attach_media(button, id) {
+			var id = id || button.data('frame').state().get('selection').first().toJSON().id;
+
+			$.ajax({
+				url: ajaxurl,
+				type: 'post',
+				dataType: 'json',
+				data: {
+					action: 'sf_get_custom_message_image',
+					attachment_id: id,
+					attach_to_post: $('#sf_current_post_id').val()
+				}
+			}).success(function(data) {
+				var container = button.parents('.sf-media-attachment');
+
+				// Show attached image
+				container.find('.sf-image-container').html('<img src="'+data.medium_thumbnail_url+'" alt="" />');
+			});
+		}
+
+		/**
+		 * Attach custom attachment to the group message
+		 * @param  {Object} button     DOM button that called media library
+		 * @param  {object} attachment Media Library attachment object
+		 * @return {void}
+		 */
+		function sf_attach_custom_image(button, id) {
+			id = id || button.data('frame').state().get('selection').first().toJSON().id;
+
+			$.ajax({
+				url: ajaxurl,
+				type: 'post',
+				dataType: 'json',
+				data: {
+					action: 'sf_get_custom_message_image',
+					attachment_id: id
+				}
+			}).success(function(data) {
+				var container = button.parents('.sf-attachments');
+
+				// Update hidden value with src and filename, both necessary for future api call
+				container.find('.sf-custom-image').val(data.medium_thumbnail_url);
+				container.find('.sf-custom-image-filename').val(data.filename);
+
+				// Show attached image
+				container.find('.sf-attachments-custom .image-container').html('<img src="'+data.medium_thumbnail_url+'" alt="" />');
+			});
+		}
 
 		// bind form submit whe ajax call
 		if ( is_ajax ) {
@@ -294,9 +534,6 @@ jQuery(function($){
 			})
 		}
 	}
-
-	
-
 
 	
 	// Multiple update for the list of pages
