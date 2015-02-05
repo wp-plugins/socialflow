@@ -15,7 +15,7 @@
 	<?php if ( !empty( $accounts ) ) : ?>
 		<?php $SocialFlow_Post->display_compose_form( $post, $accounts ); ?>
 	<?php else : ?>
-		<div class="misc-pub-section"><p><span class="sf-error"><?php _e( "You don't have any active accounts.", 'socialflow' ); ?></p></div>
+		<div class="misc-pub-section"><p><span class="sf-error"><?php esc_html_e( "You don't have any active accounts.", 'socialflow' ); ?></p></div>
 	<?php endif; ?>
 
 </div><!-- .socialflow-box -->
