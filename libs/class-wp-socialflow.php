@@ -108,7 +108,7 @@ class WP_SocialFlow {
 		$args = array( 
 			'sslverify' => false, 
 			'headers' => array( 'Authorization' => 'Basic ' . base64_encode( 'sf_partner' . ':' . 'our partners' ) ),
-			'timeout' => 60
+			'timeout' => 20
 		);
 		$parameters = array_merge( $request->get_parameters(), $args );
 
