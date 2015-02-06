@@ -574,10 +574,6 @@ class SocialFlow_Post {
 	function post_attachments( $post_id, $post_content = '' ) {
 		$post = get_post( $post_id );
 
-		// if ( 'attachment' == $post->post_type ) {
-		// 	$post_content .= ' ' . $this->get_attachment_image( $post->ID );
-		// }
-
 		$thumbnail = get_the_post_thumbnail( $post_id, 'full' );
 		if ( $thumbnail )
 			echo '<div class="slide">'. $thumbnail .'</div>';
@@ -608,7 +604,7 @@ class SocialFlow_Post {
 			return '';
 		}
 
-		return '<img src="'. $media['medium_thumbnail_url'] .'" alt="">';
+		return '<img src="'. esc_url( $media['medium_thumbnail_url'] ) .'" alt="">';
 	}
 
 	/**
@@ -897,7 +893,7 @@ class SocialFlow_Post {
 			'post' => $post->ID,
 			'width' => '740'
 		), admin_url( '/admin-ajax.php' ) );
-		$actions['sf-compose-action'] = '<a class="thickbox" href="' .  esc_url( $url ) . '" title="' . esc_attr__( 'Send to SocialFlow', 'socialflow' ) . '">' . __( 'Send to SocialFlow', 'socialflow' ) . '</a>';
+		$actions['sf-compose-action'] = '<a class="thickbox" href="' .  esc_url( $url ) . '" title="' . esc_attr__( 'Send to SocialFlow', 'socialflow' ) . '">' . esc_attr__( 'Send to SocialFlow', 'socialflow' ) . '</a>';
 
 		return $actions;
 	}
