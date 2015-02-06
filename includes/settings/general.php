@@ -248,8 +248,8 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 		$socialflow->options->save();
 		?>
 		<div class="socialflow-authorize">
-			<p><?php esc_html_e( 'Optimize publishing to Twitter and Facebook using <a href="http://socialflow.com/">SocialFlow</a>.', 'socialflow' ); ?></p>
-			<p><?php printf( esc_attr_e( 'Don’t have a SocialFlow account? <a href="%s">Sign Up</a>', 'socialflow' ), esc_url( $signup ) ); ?></p>
+			<p><?php esc_html_e('Optimize publishing to Twitter and Facebook using', 'socialflow'); ?> <a href="http://socialflow.com/"><?php esc_html_e( 'SocialFlow.', 'socialflow' ); ?></a></p>
+			<p><?php esc_html_e('Don’t have a SocialFlow account?', 'socialflow'); ?> <a href="<?php echo esc_url($signup); ?>"><?php esc_html_e( ' Sign Up', 'socialflow' ); ?></a></p>
 			<p><a href="http://support.socialflow.com/entries/20573086-wordpress-plugin-faq-help"><?php esc_html_e( 'Help/FAQ', 'socialflow' ); ?></a></p>
 
 			<p><a class="button-primary" href="<?php echo esc_url( $api->get_authorize_url( $request_token ) ); ?>"><?php esc_html_e( 'Connect to SocialFlow', 'socialflow' ); ?></a></p>
@@ -273,8 +273,12 @@ class SocialFlow_Admin_Settings_General extends SocialFlow_Admin_Settings_Page {
 	function save_settings( $settings = array() ) {
 		global $socialflow;
 
+		// check is current page default (main) option page or is subpage
+		if ( isset( $_POST['socialflow-page'] ) )
+			return $settings;
+
 		if ( !isset( $_POST['socialflow'] ) )
-			return;
+			return $settings;
 
 		$data = $_POST['socialflow'];
 
